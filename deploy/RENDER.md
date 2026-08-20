@@ -69,7 +69,7 @@ Committed already, nothing to write yourself:
 ```
 Dockerfile                      php 8.3 + nginx + php-fpm, with pdo_pgsql and GD
 .dockerignore                   keeps vendor/, frontend/ and .env out of the image
-render.yaml                     the blueprint: 4 services + database
+render.yaml                     UNUSED on free — Blueprints are paid. See step 3.
 deploy/render/nginx.conf        serves public/, passes .php to php-fpm
 deploy/render/php.ini           opcache, 32M uploads
 deploy/render/supervisord.conf  runs nginx and php-fpm as one container
@@ -125,41 +125,117 @@ the `base64:` prefix.
 > On this machine, use Laragon's PHP 8.3 rather than the one on `PATH`:
 > `/d/laragon/bin/php/php-8.3.30-Win32-vs16-x64/php.exe artisan key:generate --show`
 
-## Step 3 — Create the Blueprint
+## Step 3 — Create the three resources by hand
 
-1. Go to **[dashboard.render.com](https://dashboard.render.com)** → **New** → **Blueprint**.
-2. Connect your Git provider and pick the repository.
-3. Render finds `render.yaml` and lists the services it will create.
-4. It prompts for every variable marked `sync: false`. Fill in:
+**Blueprints are a paid feature, so ignore `render.yaml` entirely.** It is kept
+in the repo because it documents the intended shape and becomes usable the moment
+you upgrade — but nothing below reads it. Create each resource from the dashboard
+instead. The `Dockerfile` and `deploy/render/` configs do all the real work and
+are used either way.
 
-| Variable | Service | Value |
-|---|---|---|
-| `APP_KEY` | api, queue, cron | the `base64:…` string from step 2 |
-| `APP_URL` | api, queue, cron | leave a placeholder for now — step 5 fixes it |
-| `ADMIN_EMAIL` | api | your admin login |
-| `ADMIN_PASSWORD` | api | **a real password**, not `password` |
-| `LARAVEL_ORIGIN` | web | placeholder for now — step 5 fixes it |
-| `NEXT_PUBLIC_SITE_URL` | web | placeholder for now — step 5 fixes it |
+Create them in this order — the database first, because the other two need its
+connection string.
 
-Three of those cannot be known yet, because they are the URLs of services Render
-has not created. Put anything in (`https://placeholder`), let the first deploy
-run, then correct them in step 5. **The first deploy is expected to be partly
-broken.** That is normal and step 5 is the fix.
+### 3a — PostgreSQL
 
-5. Click **Apply**. The database and the API build first; the API image takes
-   several minutes on its first build because it compiles PHP extensions.
+**New → Postgres.**
 
-> **Free plan:** delete the `50plusvoyagers-queue` and `50plusvoyagers-cron`
-> blocks from `render.yaml` before applying — both are paid features and the
-> blueprint will fail validation otherwise. See
-> [Going to production](#going-to-production) for what that costs you.
+| Field | Value |
+|---|---|
+| Name | `50plusvoyagers-db` |
+| Database | `fifty_plus_voyagers` |
+| User | `voyagers` |
+| Region | **pick one and use it for everything** |
+| Version | 16 |
+| Instance type | **Free** |
+
+When it finishes provisioning, copy the **Internal Database URL** from its page.
+Internal, not external: it is faster, free of egress charges, and does not cross
+the public internet.
+
+### 3b — Laravel (Docker)
+
+**New → Web Service** → connect your repo.
+
+| Field | Value |
+|---|---|
+| Name | `50plusvoyagers-api` |
+| Language / Runtime | **Docker** |
+| Branch | `main` |
+| Root directory | *leave blank* — the Dockerfile is at the repo root |
+| Dockerfile path | `./Dockerfile` |
+| Instance type | **Free** |
+| Health check path | `/up` |
+
+Then add the environment variables under **Advanced → Add Environment Variable**:
+
+| Key | Value |
+|---|---|
+| `APP_NAME` | `50 Plus Voyagers` |
+| `APP_ENV` | `production` |
+| `APP_DEBUG` | `false` |
+| `APP_KEY` | the `base64:…` string from step 2 |
+| `APP_URL` | `https://placeholder` — step 5 fixes it |
+| `DB_CONNECTION` | `pgsql` |
+| `DB_URL` | the **Internal Database URL** from 3a |
+| `RUN_MIGRATIONS` | `true` |
+| `SESSION_DRIVER` | `database` |
+| `CACHE_STORE` | `database` |
+| `QUEUE_CONNECTION` | `sync` |
+| `FILESYSTEM_DISK` | `local` |
+| `LOG_CHANNEL` | `stack` |
+| `LOG_LEVEL` | `warning` |
+| `MAIL_MAILER` | `log` |
+| `ADMIN_EMAIL` | your admin login |
+| `ADMIN_PASSWORD` | **a real password**, not `password` |
+
+`DB_URL` is the name Laravel reads — Render's own field is called
+`DATABASE_URL`, and pasting it under that name leaves Laravel unable to find the
+database. `QUEUE_CONNECTION` is `sync` rather than `database` because there is no
+worker on the free plan; see [Going to production](#going-to-production).
+
+The first build takes several minutes — it compiles PHP extensions.
+
+### 3c — Next.js
+
+**New → Web Service** → the same repo.
+
+| Field | Value |
+|---|---|
+| Name | `50plusvoyagers-web` |
+| Language / Runtime | **Node** |
+| Branch | `main` |
+| **Root directory** | **`frontend`** |
+| Build command | `npm ci && npm run build` |
+| Start command | `npm run start -- --port $PORT` |
+| Instance type | **Free** |
+
+Environment variables:
+
+| Key | Value |
+|---|---|
+| `NODE_VERSION` | `22` |
+| `NODE_ENV` | `production` |
+| `LARAVEL_ORIGIN` | `https://placeholder` — step 5 fixes it |
+| `NEXT_PUBLIC_SITE_URL` | `https://placeholder` — step 5 fixes it |
+| `NEXT_PUBLIC_APP_NAME` | `50 Plus Voyagers` |
+| `NEXT_PUBLIC_API_BASE_URL` | `/api` |
+
+Setting **Root directory** to `frontend` is what makes this a Node service rather
+than a Docker one — Render looks for `package.json` there. Leave it blank and it
+finds the `Dockerfile` at the root and builds the wrong half of the application.
+
+> **The first deploy is expected to be partly broken.** Two of those variables
+> are URLs of services that did not exist when you typed them. Step 5 is the fix,
+> and it is not optional.
 
 ## Step 4 — Confirm the database and schema
 
 Migrations run automatically. `deploy/render/entrypoint.sh` runs
 `php artisan migrate --force --isolated` on start, gated behind `RUN_MIGRATIONS`,
-which is set to `true` on the API service only — the worker and cron run the same
-image, and three containers migrating one database at once half-applies a schema.
+which you set to `true` in step 3b. The gate exists because the worker and cron
+you may add later run this same image, and three containers migrating one
+database at once half-applies a schema — so only ever set it on the web service.
 
 Render's `preDeployCommand` is the proper home for migrations, but it is a paid
 feature, so on free the start command is the only available hook.
@@ -329,10 +405,21 @@ alternative is S3 or Cloudflare R2 via `FILESYSTEM_DISK=s3`, which scales
 properly but needs a bucket, credentials and a pass over URL generation.
 
 **2. Run the queue.** Image derivatives, mail and sitemap work are queued, never
-inline. On free there is no worker, so **those jobs never run** — set
-`QUEUE_CONNECTION=sync` so they execute inline instead, accepting slower
-requests. Better: upgrade and re-add the `50plusvoyagers-queue` service from
-`render.yaml`.
+inline. On free there is no worker, so `QUEUE_CONNECTION` is set to `sync` and
+those jobs run inline — correct, but it makes an upload as slow as the resizing
+it triggers. On a paid plan, add a **Background Worker** from the same repo:
+Docker runtime, `./Dockerfile`, docker command
+`php artisan queue:work --tries=3 --max-time=3600`, the same `APP_KEY`,
+`APP_URL`, `DB_CONNECTION` and `DB_URL` as the API — but **`RUN_MIGRATIONS`
+unset**, so it never races the web service to migrate — then switch
+`QUEUE_CONNECTION` back to `database` on both.
+
+The scheduler is the same shape: a **Cron Job**, `* * * * *`, running
+`php artisan schedule:run`. `routes/console.php` registers nothing beyond
+`inspire` today, so it earns its keep only once you add a real scheduled task.
+
+Both are also written out in `render.yaml`, which becomes usable once Blueprints
+are unlocked.
 
 **3. Keep the database.** A free Postgres instance stops being accessible 30 days
 after creation, with a 14-day grace period before deletion, and free instances

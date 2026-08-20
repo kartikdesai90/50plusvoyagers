@@ -1,18 +1,19 @@
 # Render blueprint — the whole application in one file.
 #
-# Four services and a database, matching deploy/README.md:
+# Two services and a database, all on the free plan:
 #
 #   50plusvoyagers-web    Next.js, public. The only thing the world talks to.
-#   50plusvoyagers-api    Laravel. Private; only the front end can reach it.
-#   50plusvoyagers-queue  queue:work — image derivatives, mail, sitemap.
-#   50plusvoyagers-cron   schedule:run, once a minute.
+#   50plusvoyagers-api    Laravel, in a container. Answers /api and serves images.
 #   50plusvoyagers-db     PostgreSQL.
 #
-# Every service is on a free plan. Read the trade-offs in deploy/RENDER.md before
-# putting real content behind this: free web services spin down after 15 minutes
-# of inactivity, free instances have no persistent disk (so editor-uploaded
-# images do not survive a redeploy), and a free Postgres database expires 30 days
-# after it is created.
+# deploy/README.md describes a queue worker and a scheduler alongside these.
+# Both are paid-only on Render and are deliberately absent — see the note above
+# `databases:` for what that costs and how to add them back.
+#
+# Read the trade-offs in deploy/RENDER.md before putting real content behind
+# this: free web services spin down after 15 minutes of inactivity, free
+# instances have no persistent disk (so editor-uploaded images do not survive a
+# redeploy), and a free Postgres database expires 30 days after it is created.
 
 services:
   # ---------------------------------------------------------------------------
@@ -62,8 +63,11 @@ services:
         value: database
       - key: CACHE_STORE
         value: database
+      # `sync`, not `database`: there is no queue worker on the free plan, so a
+      # queued job would never be picked up. This runs it inline instead. Change
+      # back to `database` the moment you add the worker service.
       - key: QUEUE_CONNECTION
-        value: database
+        value: sync
       - key: FILESYSTEM_DISK
         value: local
 
@@ -121,67 +125,18 @@ services:
         value: /api
 
   # ---------------------------------------------------------------------------
-  # Queue worker. Same image as the API, different command.
+  # The queue worker and the scheduler are NOT here, and that is not an omission.
   #
-  # NOTE: background workers are a paid feature. On the free plan, drop this
-  # service and set QUEUE_CONNECTION=sync on the API instead — jobs then run
-  # inline. See deploy/RENDER.md.
-  # ---------------------------------------------------------------------------
-  - type: worker
-    name: 50plusvoyagers-queue
-    runtime: docker
-    plan: starter
-    region: oregon
-    dockerfilePath: ./Dockerfile
-    dockerCommand: php artisan queue:work --tries=3 --max-time=3600
-    envVars:
-      - key: APP_ENV
-        value: production
-      - key: APP_KEY
-        sync: false
-      - key: APP_URL
-        sync: false
-      - key: DB_CONNECTION
-        value: pgsql
-      - key: DB_URL
-        fromDatabase:
-          name: 50plusvoyagers-db
-          property: connectionString
-      - key: QUEUE_CONNECTION
-        value: database
-      - key: CACHE_STORE
-        value: database
-      - key: FILESYSTEM_DISK
-        value: local
-
-  # ---------------------------------------------------------------------------
-  # Scheduler. Laravel's own scheduler expects to be invoked every minute.
+  # Background workers and cron jobs are both paid-only on Render, and a
+  # blueprint containing either fails validation on a free workspace. Their
+  # definitions are kept in deploy/RENDER.md so they can be pasted back in on a
+  # paid plan without being reconstructed from memory.
   #
-  # routes/console.php currently registers no scheduled tasks beyond `inspire`,
-  # so this does nothing useful yet — it is here so that the first task you add
-  # actually runs. Cron jobs are also a paid feature.
+  # The consequence: QUEUE_CONNECTION on the API is `sync`, not `database`. Image
+  # derivatives, mail and sitemap work are queued jobs, and with no worker to
+  # drain the queue they would sit in the table forever. `sync` runs them inline
+  # instead — slower requests, but the work actually happens.
   # ---------------------------------------------------------------------------
-  - type: cron
-    name: 50plusvoyagers-cron
-    runtime: docker
-    plan: starter
-    region: oregon
-    schedule: "* * * * *"
-    dockerfilePath: ./Dockerfile
-    dockerCommand: php artisan schedule:run
-    envVars:
-      - key: APP_ENV
-        value: production
-      - key: APP_KEY
-        sync: false
-      - key: APP_URL
-        sync: false
-      - key: DB_CONNECTION
-        value: pgsql
-      - key: DB_URL
-        fromDatabase:
-          name: 50plusvoyagers-db
-          property: connectionString
 
 databases:
   - name: 50plusvoyagers-db
