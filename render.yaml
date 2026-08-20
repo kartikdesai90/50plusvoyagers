@@ -106,7 +106,12 @@ services:
     plan: free
     region: oregon
     rootDir: frontend
-    buildCommand: npm ci && npm run build
+    # `--include=dev` is load-bearing. NODE_ENV=production makes `npm ci` skip
+    # devDependencies, but Tailwind, PostCSS and TypeScript all live there and
+    # are all needed to *build* — the build dies on
+    # "Cannot find module '@tailwindcss/postcss'" without it. They are correctly
+    # devDependencies: the compiled output needs none of them at run time.
+    buildCommand: npm ci --include=dev && npm run build
     startCommand: npm run start -- --port $PORT
     envVars:
       - key: NODE_VERSION

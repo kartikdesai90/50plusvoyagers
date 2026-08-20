@@ -206,7 +206,7 @@ The first build takes several minutes — it compiles PHP extensions.
 | Language / Runtime | **Node** |
 | Branch | `main` |
 | **Root directory** | **`frontend`** |
-| Build command | `npm ci && npm run build` |
+| Build command | `npm ci --include=dev && npm run build` |
 | Start command | `npm run start -- --port $PORT` |
 | Instance type | **Free** |
 
@@ -224,6 +224,13 @@ Environment variables:
 Setting **Root directory** to `frontend` is what makes this a Node service rather
 than a Docker one — Render looks for `package.json` there. Leave it blank and it
 finds the `Dockerfile` at the root and builds the wrong half of the application.
+
+`--include=dev` in the build command is equally load-bearing. Render sets
+`NODE_ENV=production`, which makes `npm ci` skip `devDependencies` — but Tailwind,
+PostCSS and TypeScript all live there and are all needed to *build*. Without the
+flag the build dies on `Cannot find module '@tailwindcss/postcss'`. They belong
+in `devDependencies`: the compiled output needs none of them at run time, only
+the compiler does.
 
 > **The first deploy is expected to be partly broken.** Two of those variables
 > are URLs of services that did not exist when you typed them. Step 5 is the fix,
@@ -384,6 +391,7 @@ current by the time the build reads it.
 | Uploaded images vanished | free-tier ephemeral disk; expected — see below |
 | `SQLSTATE … does not exist` | migrations did not run; check `RUN_MIGRATIONS=true` on the API |
 | Build fails on `npm ci` | `package-lock.json` out of sync with `package.json` |
+| `Cannot find module '@tailwindcss/postcss'` | build command is missing `--include=dev` — see step 3c |
 
 Logs are per-service under the **Logs** tab; nginx and PHP errors both stream to
 stdout/stderr by design, so everything lands there.
