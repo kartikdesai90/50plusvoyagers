@@ -41,6 +41,27 @@ if [ "${RUN_MIGRATIONS:-false}" = "true" ]; then
     CACHE_STORE=file php artisan migrate --force --isolated
 fi
 
+# The administrator account.
+#
+# Off by default. Turn it on by setting SEED_ADMIN=true, deploy once, confirm
+# "Admin ready" in the log, then set it back to false — leaving it on resets the
+# password to ADMIN_PASSWORD on every restart, including the ones a free instance
+# performs by itself when it wakes from spin-down.
+#
+# AdminUserSeeder is idempotent (firstOrNew on the email), so an extra run
+# updates the existing account rather than failing on the unique constraint.
+#
+# This must run BEFORE config:cache. The seeder reads ADMIN_EMAIL and
+# ADMIN_PASSWORD through env(), which returns null once configuration is cached —
+# so seeding afterwards would quietly create admin@50voyagers.com with the
+# password "password" instead of the credentials you set.
+if [ "${SEED_ADMIN:-false}" = "true" ]; then
+    echo "==> Seeding administrator"
+    # Single-quoted: the shell would otherwise eat the namespace separators and
+    # hand artisan the class "DatabaseSeedersAdminUserSeeder".
+    CACHE_STORE=file php artisan db:seed --force --class='Database\Seeders\AdminUserSeeder'
+fi
+
 # Config and route caches. Built at start rather than baked into the image
 # because config:cache freezes environment variables into a PHP file, and the
 # environment is only complete once Render injects it.
