@@ -41,11 +41,15 @@ if [ "${RUN_MIGRATIONS:-false}" = "true" ]; then
     CACHE_STORE=file php artisan migrate --force --isolated
 fi
 
-# Config, route and view caches. Built at start rather than baked into the image
+# Config and route caches. Built at start rather than baked into the image
 # because config:cache freezes environment variables into a PHP file, and the
 # environment is only complete once Render injects it.
+#
+# There is deliberately no `view:cache`. This application ships no Blade views —
+# routes/web.php answers JSON and Next owns the document — so there is no
+# resources/views directory, and view:cache fails on the missing path rather
+# than no-opping.
 php artisan config:cache
 php artisan route:cache
-php artisan view:cache
 
 exec "$@"
