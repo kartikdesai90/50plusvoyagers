@@ -41,24 +41,38 @@ if [ "${RUN_MIGRATIONS:-false}" = "true" ]; then
     CACHE_STORE=file php artisan migrate --force --isolated
 fi
 
-# The administrator account.
+# Seeding.
 #
-# Off by default. Turn it on by setting SEED_ADMIN=true, deploy once, confirm
-# "Admin ready" in the log, then set it back to false — leaving it on resets the
-# password to ADMIN_PASSWORD on every restart, including the ones a free instance
-# performs by itself when it wakes from spin-down.
+# Both switches are off by default and are meant to be turned on for one deploy,
+# confirmed in the log, then turned off again. Leaving either on re-applies the
+# seeded values on every restart — including the ones a free instance performs by
+# itself when it wakes from spin-down — so anything an editor changed through the
+# admin panel would silently revert to the seeded copy.
 #
-# AdminUserSeeder is idempotent (firstOrNew on the email), so an extra run
-# updates the existing account rather than failing on the unique constraint.
+# Every seeder is idempotent by design: they are fixed reference sets, not sample
+# data, so they updateOrCreate (or, for the two singletons, load the first row and
+# overwrite it) rather than inserting duplicates.
 #
-# This must run BEFORE config:cache. The seeder reads ADMIN_EMAIL and
+#   SEED_ADMIN=true    just the administrator account.
+#   SEED_CONTENT=true  everything: admin, site settings, hero banners, the
+#                      who-we-are and why-us sections, feedback, gallery and blog
+#                      posts. This is what fills an empty production site.
+#
+# SEED_CONTENT already includes the administrator (DatabaseSeeder calls
+# AdminUserSeeder first), so there is no reason to set both.
+#
+# This must run BEFORE config:cache. AdminUserSeeder reads ADMIN_EMAIL and
 # ADMIN_PASSWORD through env(), which returns null once configuration is cached —
 # so seeding afterwards would quietly create admin@50voyagers.com with the
 # password "password" instead of the credentials you set.
-if [ "${SEED_ADMIN:-false}" = "true" ]; then
+#
+# Single quotes around --class: the shell would otherwise eat the namespace
+# separators and hand artisan the class "DatabaseSeedersAdminUserSeeder".
+if [ "${SEED_CONTENT:-false}" = "true" ]; then
+    echo "==> Seeding all content (admin, settings, banners, gallery, blog)"
+    CACHE_STORE=file php artisan db:seed --force --class='Database\Seeders\DatabaseSeeder'
+elif [ "${SEED_ADMIN:-false}" = "true" ]; then
     echo "==> Seeding administrator"
-    # Single-quoted: the shell would otherwise eat the namespace separators and
-    # hand artisan the class "DatabaseSeedersAdminUserSeeder".
     CACHE_STORE=file php artisan db:seed --force --class='Database\Seeders\AdminUserSeeder'
 fi
 
