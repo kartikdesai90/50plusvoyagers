@@ -1,0 +1,964 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+/* Tailwind scans the whole Next source tree; there is only one now. */
+@source '../';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+    --radius: 0.625rem;
+
+    /* Brand palette */
+    --brand: #017ea8;
+    --brand-deep: #0f3d35;
+    --surface: #ffffff;
+    --surface-alt: #f6f5f1;
+    --ink: #1a1815;
+    --ink-muted: #78756c;
+    --hairline: #e8e6df;
+    --overlay: 16 15 12;
+
+    --background: var(--surface);
+    --foreground: var(--ink);
+    --card: var(--surface);
+    --card-foreground: var(--ink);
+    --popover: var(--surface);
+    --popover-foreground: var(--ink);
+    --primary: var(--brand);
+    --primary-foreground: #ffffff;
+    --secondary: var(--surface-alt);
+    --secondary-foreground: var(--ink);
+    --muted: var(--surface-alt);
+    --muted-foreground: var(--ink-muted);
+    --accent: var(--surface-alt);
+    --accent-foreground: var(--ink);
+    --destructive: oklch(0.577 0.245 27.325);
+    --destructive-foreground: oklch(0.985 0 0);
+    --border: var(--hairline);
+    --input: var(--hairline);
+    --ring: var(--brand);
+}
+
+.dark {
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --destructive-foreground: oklch(0.985 0 0);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
+}
+
+@theme {
+    /*
+     * The families are declared by `next/font` in the root layout, which hands
+     * each one down as a CSS variable. Naming them here rather than quoting the
+     * family directly is what lets the font files be self-hosted and fingerprinted
+     * by the build; the fallbacks behind them are unchanged, and `next/font`
+     * additionally fits a size-adjusted local fallback so the swap costs no shift.
+     */
+    --font-sans:
+        var(--font-hanken-grotesk), ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-serif: var(--font-spectral), ui-serif, Georgia, serif;
+
+    /* Fluid scale lifted from the reference design */
+    --text-eyebrow: 12px;
+    --text-display: clamp(40px, 6.4vw, 82px);
+    --text-h2: clamp(30px, 4vw, 50px);
+    --text-h3: clamp(28px, 3.6vw, 46px);
+
+    --spacing-section: clamp(56px, 8vw, 116px);
+    --spacing-section-sm: clamp(48px, 6vw, 80px);
+    --spacing-gutter: clamp(20px, 5vw, 44px);
+
+    --container-page: 1180px;
+
+    --ease-brand: cubic-bezier(0.22, 0.61, 0.24, 1);
+}
+
+@theme inline {
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+
+    --color-brand: var(--brand);
+    --color-brand-deep: var(--brand-deep);
+    --color-surface: var(--surface);
+    --color-surface-alt: var(--surface-alt);
+    --color-ink: var(--ink);
+    --color-ink-muted: var(--ink-muted);
+    --color-hairline: var(--hairline);
+}
+
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
+
+    /*
+     * Both, not just the body.
+     *
+     * `overflow-x: hidden` on the body alone is honoured on the desktop but not
+     * by mobile Safari, which keeps panning the viewport sideways if anything
+     * inside is wider than it. Setting it on the root as well is what actually
+     * stops a phone from scrolling off the edge of the design.
+     */
+    html,
+    body {
+        overflow-x: hidden;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        @apply bg-background text-foreground antialiased;
+    }
+
+    img {
+        @apply block max-w-full;
+    }
+
+    ::selection {
+        background: rgb(1 126 168 / 0.16);
+    }
+
+    ::-webkit-scrollbar {
+        height: 8px;
+        width: 9px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: rgb(26 24 21 / 0.16);
+        border-radius: 99px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        html {
+            scroll-behavior: auto;
+        }
+    }
+
+    /*
+     * Holds the page until the intro timeline takes over, so it never paints
+     * un-animated while GSAP boots. The class is added by an inline script and
+     * removed by a failsafe timer, so a JS failure can never strand it.
+     *
+     * Scoped to the things the intro actually animates rather than to `body`.
+     * Cloaking the whole document meant the hero photograph — which the intro
+     * never touches — could not paint until GSAP had downloaded, parsed and
+     * built every section's ScrollTrigger. On a throttled connection that put
+     * five seconds between the picture arriving and it being allowed on screen,
+     * and since Largest Contentful Paint ignores anything at `opacity: 0`, the
+     * page's LCP was the bundle's boot time rather than the image's load time.
+     *
+     * What is listed here is exactly what `buildHero`, `buildSection` and
+     * `buildFooter` hide a moment later in JS, so the choreography is unchanged:
+     * the same elements start hidden and arrive in the same order. The
+     * photograph simply no longer waits its turn.
+     */
+    html.voy-boot [data-voy-hero-copy] > *,
+    html.voy-boot main > section:not(:first-of-type),
+    html.voy-boot footer {
+        opacity: 0;
+    }
+
+    /* Lenis smooth scrolling — it drives scroll position itself. */
+    html.lenis,
+    html.lenis body {
+        height: auto;
+    }
+
+    .lenis.lenis-smooth {
+        scroll-behavior: auto !important;
+    }
+
+    .lenis.lenis-smooth [data-lenis-prevent] {
+        overscroll-behavior: contain;
+    }
+
+    .lenis.lenis-stopped {
+        overflow: hidden;
+    }
+}
+
+@layer components {
+    /*
+     * ------------------------------------------------------------ Admin theme
+     * Scoped to the admin shell so the marketing page is untouched. It keeps the
+     * brand accent (so the panel still reads as 50+ Voyagers) but swaps the warm
+     * editorial neutrals for a cooler, calmer greyscale that suits dense UI.
+     *
+     * Because it redefines the shadcn token names, every existing primitive
+     * (Button, Card, Input, DropdownMenu) adopts the admin palette automatically.
+     */
+    .admin-theme {
+        --background: #f6f7f9;
+        --foreground: #14181f;
+        --card: #ffffff;
+        --card-foreground: #14181f;
+        --popover: #ffffff;
+        --popover-foreground: #14181f;
+        --secondary: #f1f3f7;
+        --secondary-foreground: #14181f;
+        --muted: #f1f3f7;
+        --muted-foreground: #5b6472;
+        --accent: #eef1f6;
+        --accent-foreground: #14181f;
+        --border: #e4e8ee;
+        --input: #dde2ea;
+        --radius: 0.75rem;
+    }
+
+    /* ----------------------------------------------------------------- Guard */
+
+    /*
+     * Selection turned off while the content guard is on.
+     *
+     * Set in paint rather than by cancelling `selectstart` in script: the
+     * browser never starts a highlight it is about to be told to abandon, so
+     * there is no flicker of blue as a drag begins.
+     *
+     * Everything a visitor types is exempt. Somebody filling in an enquiry has
+     * to be able to select what they typed to correct it, and a form that
+     * fights its own user protects nothing.
+     */
+    .voy-guarded {
+        -webkit-user-select: none;
+        user-select: none;
+        /* Long-press on iOS otherwise offers its own copy/save sheet. */
+        -webkit-touch-callout: none;
+    }
+
+    .voy-guarded :is(input, textarea, select, [contenteditable='true']) {
+        -webkit-user-select: text;
+        user-select: text;
+        -webkit-touch-callout: default;
+    }
+
+    /* Pictures are the thing most often dragged off a page, so they say no to
+       the drag itself as well as to the menu that offers to save them. */
+    .voy-guarded img {
+        -webkit-user-drag: none;
+        user-drag: none;
+    }
+
+    /* ---------------------------------------------------------------- Layout */
+    .voy-container {
+        @apply mx-auto w-full max-w-page px-gutter;
+    }
+
+    /*
+     * Sections far enough down the page are laid out only once they are needed.
+     *
+     * The homepage is fourteen bands of roughly a thousand elements, and the
+     * browser was measuring every one of them before it could paint the first —
+     * a single layout pass of nearly 300ms on a mid-range phone, for content
+     * some visitors never scroll to. `content-visibility` lets it skip the work
+     * until each band approaches the viewport.
+     *
+     * From the fourth band on, deliberately. The first three cover the tallest
+     * phone's opening screens, and skipping a band that is about to be measured
+     * by the scroll choreography would cost more than it saved.
+     *
+     * `contain-intrinsic-size` is the half that keeps the scrollbar honest: it
+     * stands in for the real height while a band is skipped, so the page's total
+     * length — and every ScrollTrigger position derived from it — does not jump
+     * as bands are realised. `auto` lets the browser remember each band's real
+     * height once measured and use that from then on.
+     */
+    main > section:nth-of-type(n + 4) {
+        content-visibility: auto;
+        contain-intrinsic-size: auto 900px;
+    }
+
+    /* -------------------------------------------------------------- Typography */
+    .voy-eyebrow {
+        @apply text-[12px]/none font-bold tracking-[0.24em] text-brand uppercase;
+    }
+
+    .voy-heading {
+        @apply font-serif font-normal tracking-[-0.02em] text-balance text-ink;
+        line-height: 1.06;
+    }
+
+    /*
+     * The turn of a heading, in the brand italic.
+     *
+     * Colour and slope only — no weight, no size, no face of its own. The
+     * emphasis has to read as the same sentence leaning into a word rather than
+     * as a second typeface arriving in the middle of it, and Spectral's italic
+     * is a true drawn italic rather than a slanted roman, which is what makes
+     * that possible at display size.
+     *
+     * Written as an `<em>`, so a screen reader gives the word the stress the
+     * design gives it, and set here rather than in the components so the one
+     * decision lives with the rest of the type.
+     */
+    .voy-emphasis {
+        @apply text-brand italic;
+        font-style: italic;
+        /* Italic serifs sit a shade tight against an upright neighbour. */
+        letter-spacing: 0.006em;
+    }
+
+    /*
+     * On a photograph the ink serif is already white, and brand blue over a
+     * dark image is neither legible nor the design. There the emphasis is the
+     * slope alone.
+     */
+    .voy-divider-body .voy-emphasis,
+    .voy-hero-caption .voy-emphasis {
+        @apply text-white;
+    }
+
+    /* ------------------------------------------------------------- Hero slider */
+    .voy-hero-media {
+        @apply relative overflow-hidden rounded-[28px];
+        height: clamp(420px, 54vh, 560px);
+    }
+
+    .voy-hero-slide {
+        @apply absolute inset-0 size-full object-cover opacity-0;
+        transform: scale(1.03);
+        transition:
+            opacity 0.9s var(--ease-brand),
+            transform 1.8s var(--ease-brand);
+    }
+
+    /*
+     * `will-change` belongs on the slide that is about to move, not on all five.
+     *
+     * Declared on every slide it promoted five full-bleed images to their own
+     * compositor layers at parse time, and the browser had to rasterise all of
+     * them — including the four sitting at `opacity: 0` that it would otherwise
+     * skip entirely — before it could produce a single frame. That pushed the
+     * page's very first paint out by well over a second on a mid-range device.
+     *
+     * Scoped to the visible slide, the hint still arrives before the transition
+     * it is meant to smooth: the outgoing slide keeps its layer for the length
+     * of the fade because the property is still animating, and the incoming one
+     * is promoted the moment it becomes active.
+     */
+    .voy-hero-slide[data-active] {
+        will-change: opacity, transform;
+    }
+
+    .voy-hero-slide[data-active] {
+        @apply opacity-100;
+        transform: scale(1);
+    }
+
+    .voy-hero-reveal {
+        @apply pointer-events-none absolute inset-0 flex flex-col justify-end opacity-0;
+        padding: clamp(28px, 4vw, 54px);
+        background: linear-gradient(
+            0deg,
+            rgb(16 20 17 / 0.72) 0%,
+            rgb(16 20 17 / 0.34) 40%,
+            rgb(16 20 17 / 0.04) 74%,
+            rgb(16 20 17 / 0) 100%
+        );
+        transition: opacity 0.45s var(--ease-brand);
+        will-change: opacity;
+    }
+
+    .voy-hero-caption {
+        @apply flex flex-wrap items-end justify-between;
+        gap: clamp(20px, 4vw, 48px);
+    }
+
+    .voy-hero-caption > * {
+        @apply opacity-0;
+        transform: translateY(16px);
+        transition:
+            opacity 0.42s var(--ease-brand),
+            transform 0.42s var(--ease-brand);
+    }
+
+    .voy-hero-caption > *:nth-child(2) {
+        transition-delay: 0.1s;
+    }
+
+    .voy-hero-media:hover .voy-hero-reveal,
+    .voy-hero-media:focus-within .voy-hero-reveal {
+        @apply opacity-100;
+    }
+
+    .voy-hero-media:hover .voy-hero-caption > *,
+    .voy-hero-media:focus-within .voy-hero-caption > * {
+        @apply opacity-100;
+        transform: none;
+    }
+
+    .voy-hero-badge {
+        @apply self-start rounded-full border border-white/55 px-3.5 py-[7px] text-[10.5px]/none font-bold tracking-[0.16em] text-white uppercase;
+    }
+
+    .voy-hero-title {
+        @apply mt-4 max-w-[20ch] font-serif font-normal tracking-[-0.02em] text-balance text-white;
+        font-size: clamp(28px, 3.6vw, 52px);
+        line-height: 1.04;
+    }
+
+    .voy-hero-sub {
+        @apply mt-3.5 max-w-[42ch] text-white/90;
+        font-size: clamp(15px, 1.3vw, 17px);
+        line-height: 1.5;
+    }
+
+    .voy-hero-link {
+        @apply pointer-events-auto inline-flex items-center gap-[9px] border-b border-white/75 pb-[7px] text-sm font-bold tracking-[0.02em] text-white;
+        transition:
+            opacity 0.42s var(--ease-brand),
+            transform 0.42s var(--ease-brand),
+            border-color 0.5s ease;
+    }
+
+    .voy-hero-link svg {
+        transition: transform 0.55s var(--ease-brand);
+    }
+
+    .voy-hero-link:hover {
+        @apply border-b-white text-white;
+    }
+
+    .voy-hero-link:hover svg {
+        transform: translateX(4px);
+    }
+
+    /* Touch devices get the caption up front — there is no hover to discover it. */
+    @media (hover: none), (max-width: 900px) {
+        .voy-hero-reveal {
+            @apply opacity-100;
+        }
+
+        .voy-hero-caption > * {
+            @apply opacity-100;
+            transform: none;
+        }
+    }
+
+    /* --------------------------------------------------------- Image dividers */
+    .voy-divider {
+        @apply relative overflow-hidden rounded-3xl;
+    }
+
+    /* A band's media may be a picture or a film. Both are given the same box,
+       so which one an editor chose changes nothing about the layout. */
+    .voy-divider :is(img, video) {
+        @apply w-full object-cover;
+        height: clamp(420px, 38vw, 480px);
+        transition: transform 0.7s var(--ease-brand);
+    }
+
+    .voy-divider:hover :is(img, video) {
+        transform: scale(1.03);
+    }
+
+    .voy-divider-body {
+        @apply absolute inset-0 flex flex-col items-start justify-center text-white;
+        padding: clamp(32px, 5.5vw, 72px);
+        background: linear-gradient(
+            90deg,
+            rgb(16 15 12 / 0.86) 0%,
+            rgb(16 15 12 / 0.72) 26%,
+            rgb(16 15 12 / 0.44) 50%,
+            rgb(16 15 12 / 0.14) 74%,
+            rgb(16 15 12 / 0) 94%
+        );
+    }
+
+    /* Dedicated left content column — the photo carries the right half. */
+    .voy-divider-body > * {
+        max-width: min(450px, 100%);
+    }
+
+    .voy-divider-body a svg {
+        transition: transform 0.55s var(--ease-brand);
+    }
+
+    .voy-divider-body a:hover svg {
+        transform: translateX(4px);
+    }
+
+    @media (max-width: 640px) {
+        .voy-divider-body {
+            padding: clamp(32px, 7vw, 40px);
+            background: linear-gradient(
+                0deg,
+                rgb(16 15 12 / 0.9) 0%,
+                rgb(16 15 12 / 0.66) 52%,
+                rgb(16 15 12 / 0.34) 100%
+            );
+        }
+    }
+
+    /* ---------------------------------------------------- Written feedback */
+    /*
+     * The quotes band scrolls itself.
+     *
+     * Two identical sets of cards sit on one track, and the track is moved by
+     * exactly the width of one set plus one gap — `-50%` alone would be half of
+     * the track *including* the gap that separates the two sets, which lands
+     * half a gap short and shows a visible jump on every loop.
+     *
+     * Nothing about this is required to read the quotes: the second set is
+     * hidden from assistive technology, the track stops on hover and on focus,
+     * and with reduced motion preferred it stops being an animation at all and
+     * becomes an ordinary row the visitor scrolls themselves.
+     */
+    .voy-toasts {
+        --voy-toasts-gap: clamp(28px, 3.4vw, 48px);
+
+        @apply relative;
+        /* Cards enter and leave rather than being sliced off at the edge. */
+        -webkit-mask-image: linear-gradient(
+            90deg,
+            transparent 0,
+            #000 7%,
+            #000 93%,
+            transparent 100%
+        );
+        mask-image: linear-gradient(90deg, transparent 0, #000 7%, #000 93%, transparent 100%);
+        overflow: hidden;
+    }
+
+    .voy-toasts-track {
+        @apply flex w-max items-stretch;
+        gap: var(--voy-toasts-gap);
+        will-change: transform;
+        animation: voy-toasts-scroll var(--voy-toasts-duration, 60s) linear infinite;
+    }
+
+    /* Long enough to read one without chasing it across the screen. */
+    .voy-toasts:hover .voy-toasts-track,
+    .voy-toasts:focus-within .voy-toasts-track {
+        animation-play-state: paused;
+    }
+
+    .voy-toast {
+        @apply flex shrink-0 flex-col text-center;
+        width: min(340px, 78vw);
+    }
+
+    @keyframes voy-toasts-scroll {
+        to {
+            transform: translateX(calc(-50% - (var(--voy-toasts-gap) / 2)));
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .voy-toasts {
+            overflow-x: auto;
+            -webkit-mask-image: none;
+            mask-image: none;
+        }
+
+        .voy-toasts-track {
+            animation: none;
+            will-change: auto;
+        }
+    }
+
+    /* --------------------------------------------------------------- Gallery */
+    /*
+     * One row of photographs that scrolls sideways.
+     *
+     * It was a wrapping grid of `minmax(250px, 1fr)`, and the sizes here are
+     * that grid's arithmetic written out: at every width the row shows the same
+     * number of cards across, at the same width, with the same gap. The only
+     * difference is that the ones that do not fit wait off to the side instead
+     * of starting a second line — which is what the arrows under it move.
+     *
+     * The counts below are where that grid changed column count, so a screen of
+     * any width gets the row it got before.
+     */
+    .voy-gallery {
+        --voy-gallery-gap: clamp(12px, 1.4vw, 18px);
+        --voy-gallery-seen: 4;
+
+        @apply flex;
+        gap: var(--voy-gallery-gap);
+        /*
+         * Vertical is explicitly hidden rather than left to compute from the
+         * horizontal: `overflow-x: auto` alone makes the other axis scrollable
+         * too, and the reveal that lifts these cards into place would then
+         * flash a vertical scrollbar on its way past.
+         */
+        overflow-x: auto;
+        overflow-y: hidden;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        /* The arrows are the control. A scrollbar under the photographs is not
+           part of the design, and swiping still works without one drawn. */
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .voy-gallery::-webkit-scrollbar {
+        display: none;
+    }
+
+    .voy-gallery > * {
+        flex: 0 0
+            calc(
+                (100% - (var(--voy-gallery-seen) - 1) * var(--voy-gallery-gap)) /
+                    var(--voy-gallery-seen)
+            );
+        scroll-snap-align: start;
+    }
+
+    @media (max-width: 1135px) {
+        .voy-gallery {
+            --voy-gallery-seen: 3;
+        }
+    }
+
+    @media (max-width: 867px) {
+        .voy-gallery {
+            --voy-gallery-seen: 2;
+        }
+    }
+
+    @media (max-width: 567px) {
+        .voy-gallery {
+            --voy-gallery-seen: 1;
+        }
+    }
+
+    /* ------------------------------------------------------- Traveller films */
+    /* Three films or fewer: a plain centred row, with the featured one bigger. */
+    .voy-films {
+        @apply relative z-1 flex flex-wrap items-center justify-center;
+        gap: clamp(14px, 2vw, 28px);
+    }
+
+    /*
+     * More films than places: the window they slide through.
+     *
+     * Exactly as wide as the cards on show plus the gaps between them, so the
+     * strip is cropped to that many and the rest waits out of frame either
+     * side. Padded top and bottom because the middle card stands taller than
+     * the line the others keep.
+     */
+    .voy-films-frame {
+        /* A slot: the big card at full size, with the gap built into it. */
+        --voy-film-w: clamp(230px, 27vw, 350px);
+        /* How much smaller the cards either side of the middle one are. */
+        --voy-film-small: 0.78;
+        --voy-films-seen: 3;
+
+        @apply relative z-1 mx-auto max-w-full overflow-hidden;
+        width: calc(var(--voy-films-seen) * var(--voy-film-w));
+    }
+
+    /*
+     * The whole list twice over, moved by whole cards.
+     *
+     * A card at a time, left to right: the strip carries the one behind into
+     * the middle place rather than the row rearranging itself around it. It
+     * slides for a full pass and then jumps back to the frame that looks
+     * identical — `data-snap` is that one frame, and the only one with no
+     * transition to give it away.
+     */
+    .voy-films-strip {
+        @apply flex w-max items-center;
+        transform: translateX(calc(-1 * var(--voy-films-at, 0) * var(--voy-film-w)));
+        transition: transform 0.85s var(--ease-brand);
+        will-change: transform;
+    }
+
+    .voy-films-strip[data-snap] {
+        transition: none;
+    }
+
+    /*
+     * Inside the strip every card occupies the same slot, whatever else is true
+     * of it: the slide moves by exactly one slot, and a card that measured
+     * differently would leave the strip a little further along every pass.
+     *
+     * The difference in size is a scale, and it goes downwards — the big card
+     * fills its slot and the ones beside it shrink inside theirs. That way no
+     * card can ever reach past the slot it stands in, so the card being played
+     * is whole whether it is in the middle or at either edge. Growing the
+     * middle one instead would put whichever card the visitor played at the
+     * edge half outside the frame, and the frame would clip it.
+     *
+     * The gaps come from that same shrinking: with the slots flush against each
+     * other, what is seen between two cards is exactly what the smaller one
+     * gives back.
+     */
+    .voy-films-frame .voy-film {
+        width: var(--voy-film-w);
+        transform: scale(var(--voy-film-small));
+        transition: transform 0.6s var(--ease-brand);
+    }
+
+    .voy-films-frame .voy-film-lg {
+        transform: none;
+    }
+
+    /*
+     * `appearance-none` and the rest because this is a `<button>` whenever
+     * there is a film behind it, and a bare `<button>` arrives with a
+     * background, a border, a font and centred text of its own.
+     */
+    .voy-film {
+        @apply relative block flex-none appearance-none overflow-hidden rounded-[30px] border-0 bg-transparent p-0 text-left text-white;
+        width: clamp(184px, 21vw, 286px);
+        aspect-ratio: 5 / 7;
+        transition: width 0.6s var(--ease-brand);
+    }
+
+    button.voy-film {
+        @apply cursor-pointer;
+    }
+
+    .voy-film:focus-visible {
+        @apply ring-[3px] ring-brand/45 ring-offset-2 ring-offset-surface outline-none;
+    }
+
+    .voy-film-lg {
+        width: clamp(230px, 28vw, 390px);
+    }
+
+    .voy-film img {
+        @apply size-full object-cover;
+    }
+
+    /*
+     * The film, in the frame the still was in.
+     *
+     * Laid over the still rather than replacing it, so there is never a blank
+     * card between the click and the first frame — the still is what a poster
+     * would have been, and it is already decoded.
+     *
+     * No controls: the card itself is the play button, and a scrubber over a
+     * portrait card this size is more chrome than picture.
+     */
+    .voy-film-video {
+        @apply absolute inset-0 size-full border-0 bg-black object-cover;
+    }
+
+    /*
+     * While it plays, the card gets out of the way of the film: the veil lifts
+     * most of the way and the name goes with it. Both come back on hover, which
+     * is when someone is looking for the pause button anyway.
+     */
+    .voy-film-playing .voy-film-veil {
+        opacity: 0.25;
+    }
+
+    .voy-film-playing .voy-film-meta {
+        opacity: 0;
+    }
+
+    .voy-film-playing:hover .voy-film-veil,
+    .voy-film-playing:focus-visible .voy-film-veil {
+        opacity: 1;
+    }
+
+    .voy-film-playing:hover .voy-film-meta,
+    .voy-film-playing:focus-visible .voy-film-meta {
+        opacity: 1;
+    }
+
+    .voy-film-veil {
+        @apply pointer-events-none absolute inset-0;
+        background: linear-gradient(
+            180deg,
+            rgb(16 15 12 / 0.55) 0%,
+            rgb(16 15 12 / 0.06) 34%,
+            rgb(16 15 12 / 0.34) 100%
+        );
+        transition: opacity 0.45s var(--ease-brand);
+    }
+
+    .voy-film-meta {
+        @apply pointer-events-none absolute text-left;
+        top: clamp(18px, 2vw, 26px);
+        left: clamp(18px, 2vw, 26px);
+        right: clamp(18px, 2vw, 26px);
+        transition: opacity 0.45s var(--ease-brand);
+    }
+
+    .voy-film-name {
+        @apply block font-serif font-medium;
+        font-size: clamp(19px, 1.7vw, 24px);
+        line-height: 1.15;
+    }
+
+    .voy-film-role {
+        @apply mt-1 block text-[13px]/[1.45] text-white/85;
+    }
+
+    .voy-film-play {
+        @apply absolute flex size-12 items-center justify-center rounded-full border-[1.5px] border-white/60 bg-white/20 backdrop-blur-[6px];
+        right: clamp(16px, 1.8vw, 22px);
+        bottom: clamp(16px, 1.8vw, 22px);
+        transition:
+            background 0.5s var(--ease-brand),
+            border-color 0.5s var(--ease-brand);
+    }
+
+    .voy-film:hover .voy-film-play {
+        @apply border-white/90 bg-white/35;
+    }
+
+    /* Soft decorative shapes behind the row. */
+    .voy-films-deco {
+        @apply pointer-events-none absolute rounded-full;
+    }
+
+    .voy-films-ring {
+        top: -4%;
+        right: -12%;
+        width: min(44vw, 520px);
+        aspect-ratio: 1;
+        border: clamp(26px, 3.2vw, 52px) solid rgb(1 126 168 / 0.055);
+    }
+
+    .voy-films-blob {
+        bottom: -14%;
+        left: -10%;
+        width: min(30vw, 340px);
+        aspect-ratio: 1;
+        background: rgb(1 126 168 / 0.04);
+    }
+
+    @media (max-width: 760px) {
+        .voy-film,
+        .voy-film-lg {
+            width: min(100%, 340px);
+        }
+
+        /*
+         * One card to a screen. There is no middle to be bigger than the ones
+         * beside it, so the card on show is simply the card, at full size.
+         */
+        .voy-films-frame {
+            --voy-films-seen: 1;
+            --voy-film-w: min(88vw, 360px);
+            --voy-film-small: 1;
+        }
+    }
+
+    /* ------------------------------------------------------------ Card hover */
+    /*
+     * The card itself never moves and gains no shadow — only its image drifts
+     * up 3px and scales to 1.03. Both attributes are applied by the motion
+     * layer, so cards only gain this once the choreography is running.
+     */
+    [data-voy-img] {
+        transition: transform 0.6s var(--ease-brand);
+        will-change: transform;
+    }
+
+    [data-voy-card]:hover [data-voy-img] {
+        transform: translateY(-3px) scale(1.03);
+    }
+
+    /* ------------------------------------------------- Hover-reveal overlays */
+    .voy-overlay {
+        @apply absolute inset-0 flex flex-col justify-end text-white opacity-0;
+        transition: opacity 0.45s ease;
+    }
+
+    .group:hover .voy-overlay,
+    .group:focus-visible .voy-overlay,
+    .group:focus-within .voy-overlay {
+        @apply opacity-100;
+    }
+
+    /* Without a pointer there is no hover, so the story would never be readable. */
+    @media (hover: none) {
+        .voy-overlay {
+            @apply opacity-100;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .voy-hero-slide,
+        .voy-hero-reveal,
+        .voy-hero-caption > *,
+        .voy-hero-link,
+        .voy-hero-link svg,
+        .voy-divider img,
+        .voy-divider-body a svg,
+        .voy-film,
+        .voy-film-play,
+        .voy-film-veil,
+        .voy-film-meta,
+        .voy-overlay,
+        [data-voy-img] {
+            transition: none;
+        }
+
+        /* The row still moves on; it simply stops sliding to get there. */
+        .voy-films-strip {
+            transition: none;
+            will-change: auto;
+        }
+
+        /* The arrows still move the gallery; it arrives rather than travels. */
+        .voy-gallery {
+            scroll-behavior: auto;
+        }
+
+        [data-voy-card]:hover [data-voy-img] {
+            transform: none;
+        }
+
+        .voy-hero-slide,
+        .voy-hero-caption > * {
+            transform: none;
+        }
+
+        .voy-hero-reveal,
+        .voy-hero-caption > * {
+            @apply opacity-100;
+        }
+
+        .voy-divider:hover img,
+        .voy-divider-body a:hover svg {
+            transform: none;
+        }
+    }
+}
