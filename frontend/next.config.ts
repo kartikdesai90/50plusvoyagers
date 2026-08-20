@@ -6,8 +6,16 @@ import type { NextConfig } from 'next';
  * Server-side only. The browser never sees this address — every request a
  * browser makes goes to Next, which forwards it on. That is deliberate and is
  * explained under `rewrites` below.
+ *
+ * The value is normalised because every `destination` below appends a path that
+ * already starts with `/`. A copied-from-the-address-bar origin ending in `/`
+ * would produce `https://host//api/...`, and Laravel matches no route with a
+ * leading double slash — so the whole API 404s while the pages still render,
+ * which reads as a routing bug rather than a configuration one. Blank is treated
+ * as absent for the same reason: a dashboard lets you define a variable and
+ * leave it empty, and `??` alone would let `''` through.
  */
-const backend = process.env.LARAVEL_ORIGIN ?? 'http://127.0.0.1:8000';
+const backend = (process.env.LARAVEL_ORIGIN?.trim() || 'http://127.0.0.1:8000').replace(/\/+$/, '');
 
 const nextConfig: NextConfig = {
     reactStrictMode: true,
