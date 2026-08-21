@@ -73,6 +73,18 @@ export function BandForm({
         value: HeroBannerInput[FieldName],
     ) => setForm((current) => ({ ...current, [field]: value }));
 
+    /*
+     * The two band types are edited through the same form but draw different
+     * things, and the fields one of them never draws are worse than useless:
+     * an editor fills them in, saves successfully, and finds the homepage
+     * unchanged. So each type is offered only what it renders.
+     *
+     * A hero slide draws its picture and the caption over it. A banner draws
+     * the centred block — label, heading, description, button — and has no
+     * overlay at all.
+     */
+    const isHero = form.section_type === 'hero';
+
     return (
         <form
             className="flex flex-col gap-4"
@@ -131,59 +143,71 @@ export function BandForm({
                             />
                         </FormSection>
 
-                        <FormSection
-                            title="Content"
-                            description={
-                                form.section_type === 'hero'
-                                    ? 'What a traveller reads over the media. On the hero only the first band’s words are shown — the page keeps one heading while the pictures rotate — so a band further down the order contributes its picture and nothing else.'
-                                    : 'What a traveller reads over the media.'
-                            }
-                        >
-                            <Field
-                                label="Label"
-                                htmlFor={labelId}
-                                error={fieldErrors.label}
-                                hint="The small line above the heading. Leave empty for none."
+                        {/*
+                         * The centred block above the picture: label, heading,
+                         * description, and the button below them. A banner draws
+                         * all of it.
+                         *
+                         * The hero does not — it draws that block once, from
+                         * whichever band is first, so on every other slide these
+                         * fields save successfully and change nothing. That is
+                         * the worst kind of field, so the hero is not offered
+                         * them at all; its words live in the caption section
+                         * below, which is per-slide.
+                         */}
+                        {isHero ? null : (
+                            <FormSection
+                                title="Content"
+                                description="What a traveller reads over the media."
                             >
-                                <Input
-                                    id={labelId}
-                                    value={form.label}
-                                    disabled={isSaving}
-                                    aria-invalid={Boolean(fieldErrors.label)}
-                                    onChange={(event) => change('label', event.target.value)}
-                                />
-                            </Field>
+                                <Field
+                                    label="Label"
+                                    htmlFor={labelId}
+                                    error={fieldErrors.label}
+                                    hint="The small line above the heading. Leave empty for none."
+                                >
+                                    <Input
+                                        id={labelId}
+                                        value={form.label}
+                                        disabled={isSaving}
+                                        aria-invalid={Boolean(fieldErrors.label)}
+                                        onChange={(event) => change('label', event.target.value)}
+                                    />
+                                </Field>
 
-                            <Field
-                                label="Heading"
-                                htmlFor={headingId}
-                                error={fieldErrors.heading}
-                                required
-                                hint="Wrap a word in *asterisks* to set it in the brand italic."
-                            >
-                                <Input
-                                    id={headingId}
-                                    value={form.heading}
-                                    disabled={isSaving}
-                                    aria-invalid={Boolean(fieldErrors.heading)}
-                                    onChange={(event) => change('heading', event.target.value)}
-                                />
-                            </Field>
+                                <Field
+                                    label="Heading"
+                                    htmlFor={headingId}
+                                    error={fieldErrors.heading}
+                                    required
+                                    hint="Wrap a word in *asterisks* to set it in the brand italic."
+                                >
+                                    <Input
+                                        id={headingId}
+                                        value={form.heading}
+                                        disabled={isSaving}
+                                        aria-invalid={Boolean(fieldErrors.heading)}
+                                        onChange={(event) => change('heading', event.target.value)}
+                                    />
+                                </Field>
 
-                            <Field
-                                label="Description"
-                                htmlFor={descriptionId}
-                                error={fieldErrors.description}
-                            >
-                                <Textarea
-                                    id={descriptionId}
-                                    value={form.description}
-                                    disabled={isSaving}
-                                    aria-invalid={Boolean(fieldErrors.description)}
-                                    onChange={(event) => change('description', event.target.value)}
-                                />
-                            </Field>
-                        </FormSection>
+                                <Field
+                                    label="Description"
+                                    htmlFor={descriptionId}
+                                    error={fieldErrors.description}
+                                >
+                                    <Textarea
+                                        id={descriptionId}
+                                        value={form.description}
+                                        disabled={isSaving}
+                                        aria-invalid={Boolean(fieldErrors.description)}
+                                        onChange={(event) =>
+                                            change('description', event.target.value)
+                                        }
+                                    />
+                                </Field>
+                            </FormSection>
+                        )}
 
                         {/*
                          * The words printed over the photograph. A banner has
@@ -191,11 +215,34 @@ export function BandForm({
                          * five fields that could never appear anywhere would
                          * be five fields an editor has to learn to ignore.
                          */}
-                        {form.section_type === 'hero' ? (
+                        {isHero ? (
                             <FormSection
                                 title="Caption over the picture"
-                                description="The small block of words on the photograph itself. Leave empty for none."
+                                description="The words a visitor reads on the photograph. This is a hero slide’s own copy, and it changes as the pictures rotate. Leave the caption fields empty for a slide that carries no words."
                             >
+                                {/*
+                                 * Kept with the caption rather than in a section
+                                 * of its own: it is the one field a hero slide
+                                 * must have, and describing the photograph is
+                                 * what it is for here. The lead band also prints
+                                 * it as the page's `h1`.
+                                 */}
+                                <Field
+                                    label="Picture description"
+                                    htmlFor={headingId}
+                                    error={fieldErrors.heading}
+                                    required
+                                    hint="Describes the photograph for screen readers and search engines. The first slide also prints it as the page’s heading — wrap a word in *asterisks* for the brand italic."
+                                >
+                                    <Input
+                                        id={headingId}
+                                        value={form.heading}
+                                        disabled={isSaving}
+                                        aria-invalid={Boolean(fieldErrors.heading)}
+                                        onChange={(event) => change('heading', event.target.value)}
+                                    />
+                                </Field>
+
                                 <Field
                                     label="Badge"
                                     htmlFor={captionLabelId}
@@ -283,45 +330,47 @@ export function BandForm({
                             </FormSection>
                         ) : null}
 
-                        <FormSection
-                            title="Button under the heading"
-                            description="Optional, and separate from the caption's link: this is the filled button in the centred block above the picture. A button needs both its words and its address, or neither."
-                        >
-                            <FormGrid>
-                                <Field
-                                    label="Button text"
-                                    htmlFor={buttonTextId}
-                                    error={fieldErrors.button_text}
-                                >
-                                    <Input
-                                        id={buttonTextId}
-                                        value={form.button_text}
-                                        disabled={isSaving}
-                                        aria-invalid={Boolean(fieldErrors.button_text)}
-                                        onChange={(event) =>
-                                            change('button_text', event.target.value)
-                                        }
-                                    />
-                                </Field>
+                        {isHero ? null : (
+                            <FormSection
+                                title="Button"
+                                description="Optional. A button needs both its words and its address, or neither."
+                            >
+                                <FormGrid>
+                                    <Field
+                                        label="Button text"
+                                        htmlFor={buttonTextId}
+                                        error={fieldErrors.button_text}
+                                    >
+                                        <Input
+                                            id={buttonTextId}
+                                            value={form.button_text}
+                                            disabled={isSaving}
+                                            aria-invalid={Boolean(fieldErrors.button_text)}
+                                            onChange={(event) =>
+                                                change('button_text', event.target.value)
+                                            }
+                                        />
+                                    </Field>
 
-                                <Field
-                                    label="Button URL"
-                                    htmlFor={buttonUrlId}
-                                    error={fieldErrors.button_url}
-                                    hint="For example #trips."
-                                >
-                                    <Input
-                                        id={buttonUrlId}
-                                        value={form.button_url}
-                                        disabled={isSaving}
-                                        aria-invalid={Boolean(fieldErrors.button_url)}
-                                        onChange={(event) =>
-                                            change('button_url', event.target.value)
-                                        }
-                                    />
-                                </Field>
-                            </FormGrid>
-                        </FormSection>
+                                    <Field
+                                        label="Button URL"
+                                        htmlFor={buttonUrlId}
+                                        error={fieldErrors.button_url}
+                                        hint="For example #trips."
+                                    >
+                                        <Input
+                                            id={buttonUrlId}
+                                            value={form.button_url}
+                                            disabled={isSaving}
+                                            aria-invalid={Boolean(fieldErrors.button_url)}
+                                            onChange={(event) =>
+                                                change('button_url', event.target.value)
+                                            }
+                                        />
+                                    </Field>
+                                </FormGrid>
+                            </FormSection>
+                        )}
                     </>
                 }
                 aside={

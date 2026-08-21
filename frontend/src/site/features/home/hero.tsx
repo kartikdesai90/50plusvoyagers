@@ -20,15 +20,28 @@ const pad = (n: number) => String(n).padStart(2, '0');
  * `<h1>`, and a heading that changed as the pictures advanced would be a
  * different design and a worse page.
  *
- * That is true of the caption over the photograph too. It used to be printed
- * straight into this file, so an editor could change everything about the hero
- * except the white text a visitor reads first. It comes from the lead band now,
- * and a band with none written draws none — rather than an empty scrim.
+ * The caption over the photograph is the exception, and it is not one: it used
+ * to be printed straight into this file, so an editor could change everything
+ * about the hero except the white text a visitor reads first. It comes from the
+ * bands now, and from the band being *shown* rather than the lead one — a
+ * caption names the picture beneath it, so it has to advance with the carousel.
+ * A slide with none written draws none, rather than an empty scrim or the lead's
+ * words over somebody else's photograph.
  */
 export function Hero({ slides }: { slides: Band[] }) {
     const { index, step } = useHeroSlider(slides.length);
     const lead = slides[0];
-    const caption = lead.caption;
+
+    /*
+     * The caption belongs to the picture under it, so it advances with the
+     * carousel — a slide showing one photograph and another slide's words is
+     * a caption that describes the wrong thing.
+     *
+     * The centred block above stays with the lead band, for the reason in the
+     * docblock: one `h1` per page. A slide with no caption written draws none,
+     * rather than borrowing the lead's.
+     */
+    const caption = slides[index]?.caption ?? null;
 
     /*
      * The slides after the first are mounted once the browser has nothing better
