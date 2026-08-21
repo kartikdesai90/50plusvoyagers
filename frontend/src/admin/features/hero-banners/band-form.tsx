@@ -133,7 +133,11 @@ export function BandForm({
 
                         <FormSection
                             title="Content"
-                            description="What a traveller reads over the media."
+                            description={
+                                form.section_type === 'hero'
+                                    ? 'What a traveller reads over the media. On the hero only the first band’s words are shown — the page keeps one heading while the pictures rotate — so a band further down the order contributes its picture and nothing else.'
+                                    : 'What a traveller reads over the media.'
+                            }
                         >
                             <Field
                                 label="Label"
@@ -243,9 +247,10 @@ export function BandForm({
 
                                 <FormGrid>
                                     <Field
-                                        label="Link text"
+                                        label="Caption link text"
                                         htmlFor={captionButtonTextId}
                                         error={fieldErrors.caption_button_text}
+                                        hint="Sits on the photograph, not under the heading."
                                     >
                                         <Input
                                             id={captionButtonTextId}
@@ -259,7 +264,7 @@ export function BandForm({
                                     </Field>
 
                                     <Field
-                                        label="Link address"
+                                        label="Caption link address"
                                         htmlFor={captionButtonUrlId}
                                         error={fieldErrors.caption_button_url}
                                         hint="For example #trips."
@@ -279,8 +284,8 @@ export function BandForm({
                         ) : null}
 
                         <FormSection
-                            title="Button"
-                            description="Optional. A button needs both its words and its address, or neither."
+                            title="Button under the heading"
+                            description="Optional, and separate from the caption's link: this is the filled button in the centred block above the picture. A button needs both its words and its address, or neither."
                         >
                             <FormGrid>
                                 <Field
@@ -345,7 +350,7 @@ export function BandForm({
                                     label="Display order"
                                     htmlFor={orderId}
                                     error={fieldErrors.display_order}
-                                    hint="Lower numbers appear first. Leave at 0 unless you need a particular order."
+                                    hint="Lower numbers appear first, and ties are broken by which band was created first. On the hero this decides more than the order: the words, the button and the caption all come from whichever band is first, and the rest contribute only their picture."
                                     className="max-w-40"
                                 >
                                     <Input
