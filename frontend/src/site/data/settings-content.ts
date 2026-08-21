@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { laravelOrigin } from '@/site/data/origin';
 import { withFallbacks } from '@/site/data/settings';
 import type { SiteSettings } from '@/site/types/settings';
 
@@ -21,7 +22,7 @@ import type { SiteSettings } from '@/site/types/settings';
  * Reached directly rather than through this application's own origin: a server
  * calling itself to reach a proxy to somewhere else is a hop that can only fail.
  */
-const origin = process.env.LARAVEL_ORIGIN ?? 'http://127.0.0.1:8000';
+const origin = laravelOrigin;
 
 /**
  * Longer than the homepage's minute. These change a few times a year, every

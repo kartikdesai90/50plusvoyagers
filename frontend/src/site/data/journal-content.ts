@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { laravelOrigin } from '@/site/data/origin';
 import type { JournalCard, JournalPost } from '@/site/types/journal';
 
 /**
@@ -33,7 +34,7 @@ export type JournalArticle = {
  * Reached directly rather than through this application's own origin: a server
  * calling itself to reach a proxy to somewhere else is a hop that can only fail.
  */
-const origin = process.env.LARAVEL_ORIGIN ?? 'http://127.0.0.1:8000';
+const origin = laravelOrigin;
 
 /**
  * An editor publishing an article expects to see it. Sixty seconds is short

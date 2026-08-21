@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { laravelOrigin } from '@/site/data/origin';
 import type { Band } from '@/site/types/band';
 import type { Feedback } from '@/site/types/feedback';
 import type { GalleryPhoto } from '@/site/types/gallery';
@@ -50,11 +51,7 @@ const EMPTY: HomeContent = {
     articles: [],
 };
 
-/**
- * Reached directly rather than through this application's own origin: a server
- * calling itself to reach a proxy to somewhere else is a hop that can only fail.
- */
-const origin = process.env.LARAVEL_ORIGIN ?? 'http://127.0.0.1:8000';
+const origin = laravelOrigin;
 
 export async function fetchHomeContent(): Promise<HomeContent> {
     try {
