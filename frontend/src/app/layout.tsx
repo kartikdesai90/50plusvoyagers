@@ -3,6 +3,7 @@ import { Hanken_Grotesk, Spectral } from 'next/font/google';
 import type { ReactNode } from 'react';
 
 import { siteConfig } from '@/site/config/site';
+import { siteUrl } from '@/site/seo/site-url';
 import '@/styles/app.css';
 
 /**
@@ -37,32 +38,6 @@ const serif = Spectral({
     display: 'swap',
     variable: '--font-spectral',
 });
-
-/**
- * The site's public address, guaranteed to parse as a URL.
- *
- * A blank `NEXT_PUBLIC_SITE_URL` is the case worth guarding: hosting dashboards
- * let you create a variable and leave its value empty, and `''` slips past `??`
- * while still throwing `ERR_INVALID_URL`. Because `metadataBase` is evaluated at
- * module scope, that throw fails the entire build rather than one route.
- *
- * Falling back to localhost keeps the build alive; it does not make the metadata
- * correct, so the miss is logged loudly enough to notice in a deploy log.
- */
-function siteUrl(): string {
-    const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-
-    if (configured) {
-        return configured;
-    }
-
-    console.warn(
-        '[site] NEXT_PUBLIC_SITE_URL is unset or empty — canonical and og:url ' +
-            'tags will resolve against localhost. Set it to the deployed origin.',
-    );
-
-    return 'http://localhost:3000';
-}
 
 /**
  * The document both areas render into.
