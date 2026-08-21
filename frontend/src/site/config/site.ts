@@ -51,6 +51,7 @@ export const siteConfig = {
                 { label: 'About us', href: paths.about },
                 { label: 'Membership', href: paths.membership },
                 { label: 'Traveller stories', href: paths.homeSections.stories },
+                { label: 'The gallery', href: paths.gallery },
                 { label: 'The journal', href: paths.blog },
             ],
         },

@@ -19,6 +19,7 @@ export const paths = {
     workshops: '/workshops',
     blog: '/blog',
     blogPost: '/blog/:slug',
+    gallery: '/gallery',
     contact: '/contact',
     privacy: '/privacy-policy',
     terms: '/terms-and-conditions',

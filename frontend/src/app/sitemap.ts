@@ -40,6 +40,7 @@ const PUBLIC_PAGES = [
     paths.membership,
     paths.workshops,
     paths.blog,
+    paths.gallery,
     paths.contact,
     paths.privacy,
     paths.terms,

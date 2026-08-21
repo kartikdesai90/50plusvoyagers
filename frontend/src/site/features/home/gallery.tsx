@@ -3,9 +3,10 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { Container, Eyebrow, Section, SectionHeading } from '@/site/components/section';
+import { Container, Eyebrow, RuleLink, Section, SectionHeading } from '@/site/components/section';
 import { SiteImage } from '@/site/components/site-image';
 import { Button } from '@/shared/ui/button';
+import { paths } from '@/routes/paths';
 import type { GalleryPhoto } from '@/site/types/gallery';
 
 /**
@@ -113,10 +114,17 @@ export function Gallery({ items }: { items: GalleryPhoto[] }) {
                         <Eyebrow className="mb-[18px]">The gallery</Eyebrow>
                         <SectionHeading size="h3">50+ Voyagers, *over the years*</SectionHeading>
                     </div>
-                    <p className="max-w-[280px] text-[15px] text-ink-muted">
-                        Proof that the best chapters can start at any age. Hover any moment to read
-                        the story.
-                    </p>
+                    <div className="max-w-[280px]">
+                        <p className="text-[15px] text-ink-muted">
+                            Proof that the best chapters can start at any age. Hover any moment to
+                            read the story.
+                        </p>
+                        {/* The rail shows a handful; this is where the rest of
+                            them live. */}
+                        <RuleLink href={paths.gallery} className="mt-5">
+                            See every photograph
+                        </RuleLink>
+                    </div>
                 </div>
 
                 <div ref={railRef} data-voy-group className="voy-gallery">

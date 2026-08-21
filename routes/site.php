@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Site\BlogController;
+use App\Http\Controllers\Site\GalleryController;
 use App\Http\Controllers\Site\HomeController;
 use App\Http\Controllers\Site\SettingsController;
 use Illuminate\Support\Facades\Route;
@@ -17,10 +18,10 @@ use Illuminate\Support\Facades\Route;
 | application now, so the URLs belong to it and this file answers only the part
 | Laravel still owns — the data.
 |
-| The homepage and the journal have content here. Tours, the workshop list and
-| the legal text are still written into the front end, exactly as they were, so
-| there is nothing here for them to ask for. Each one earns an endpoint on the
-| day its content moves into the database, and not before.
+| The homepage, the journal and the gallery have content here. Tours, the
+| workshop list and the legal text are still written into the front end, exactly
+| as they were, so there is nothing here for them to ask for. Each one earns an
+| endpoint on the day its content moves into the database, and not before.
 |
 | The journal's address is `blog`, matching the URL a reader sees, rather than
 | the model's own word for it — an endpoint named after the page it fills is one
@@ -42,6 +43,12 @@ Route::prefix('api/site')->name('site.api.')->group(function () {
     Route::get('settings', SettingsController::class)->name('settings');
 
     Route::get('home', HomeController::class)->name('home');
+
+    /*
+     * Every photograph, for the gallery page. The homepage's eight arrive in
+     * its own payload — this answers the page that shows all of them.
+     */
+    Route::get('gallery', GalleryController::class)->name('gallery');
 
     Route::get('blog', [BlogController::class, 'index'])->name('blog.index');
     /*

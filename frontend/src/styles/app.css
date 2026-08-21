@@ -663,6 +663,69 @@
         }
     }
 
+    /* ----------------------------------------------------- Gallery lightbox */
+    /*
+     * One photograph over a darkened page.
+     *
+     * `position: fixed` against the viewport rather than the document, so the
+     * layer stays put whatever the grid behind it had been scrolled to — the
+     * component stops the page scrolling while this is open, but the offset it
+     * was already at remains.
+     *
+     * `dvh` rather than `vh`: on a phone the browser's own chrome slides in and
+     * out as you scroll, and `vh` is the taller of those two measurements. A
+     * picture sized to it would sit with its caption under the address bar.
+     */
+    .voy-lightbox {
+        @apply fixed inset-0 z-100 flex items-center justify-center;
+        block-size: 100dvh;
+        padding: clamp(16px, 4vw, 56px);
+        background: rgb(16 15 12 / 0.94);
+        animation: voy-lightbox-in 0.25s ease both;
+    }
+
+    /*
+     * The picture takes the room the caption does not want. `min-height: 0` is
+     * what allows it to shrink inside the flex column at all — without it a tall
+     * photograph on a short screen pushes its own caption off the bottom.
+     */
+    .voy-lightbox-image {
+        @apply size-full;
+        object-fit: contain;
+        min-block-size: 0;
+    }
+
+    /*
+     * The controls. Deliberately not the site's `outline_circle` button: that
+     * one is drawn in ink for a light page, and these sit on a photograph that
+     * could be any colour at all. A translucent white rule reads against both a
+     * bright sky and a dark interior, which a fixed colour cannot.
+     */
+    .voy-lightbox-control {
+        @apply flex items-center justify-center rounded-full text-white;
+        block-size: 44px;
+        inline-size: 44px;
+        border: 1px solid rgb(255 255 255 / 0.28);
+        background: rgb(16 15 12 / 0.45);
+        transition:
+            background-color 0.3s ease,
+            border-color 0.3s ease;
+    }
+
+    .voy-lightbox-control:hover {
+        background: rgb(16 15 12 / 0.75);
+        border-color: rgb(255 255 255 / 0.55);
+    }
+
+    @keyframes voy-lightbox-in {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
     /* ------------------------------------------------------- Traveller films */
     /* Three films or fewer: a plain centred row, with the featured one bigger. */
     .voy-films {
@@ -927,8 +990,14 @@
         .voy-film-veil,
         .voy-film-meta,
         .voy-overlay,
+        .voy-lightbox-control,
         [data-voy-img] {
             transition: none;
+        }
+
+        /* The layer still appears; it simply stops fading up to get there. */
+        .voy-lightbox {
+            animation: none;
         }
 
         /* The row still moves on; it simply stops sliding to get there. */
