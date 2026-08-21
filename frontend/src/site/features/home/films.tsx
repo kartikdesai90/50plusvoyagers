@@ -295,10 +295,24 @@ export function Films({ items }: { items: Feedback[] }) {
         );
 
         const key = `${index}-${film.id}`;
+
+        /*
+         * `inert` rather than `aria-hidden` + `tabIndex={-1}`.
+         *
+         * The pair looks equivalent and is not: `tabIndex={-1}` stops a card
+         * being tabbed *to* but does not release focus a card already holds, so
+         * a visitor who played a film and let the strip slide on left focus
+         * inside an `aria-hidden` subtree. The browser refuses that — "Blocked
+         * aria-hidden on an element because its descendant retained focus" —
+         * and the card stays exposed to assistive technology anyway.
+         *
+         * `inert` hides the subtree, removes it from the tab order, *and* blurs
+         * whatever inside it had focus, which is the whole of what is wanted
+         * here in one attribute.
+         */
         const shared = {
             className,
-            tabIndex: offstage ? -1 : undefined,
-            'aria-hidden': offstage || undefined,
+            inert: offstage || undefined,
         };
 
         /*
