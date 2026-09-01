@@ -1,8 +1,8 @@
 > ## ℹ️ CODE SCAN, NOT THE DECISION RECORD
 > This documents the codebase as scanned on 2026-08-11. The binding architecture is
-> [`_bmad-output/planning-artifacts/architecture.md`](../_bmad-output/planning-artifacts/architecture.md)
+> `_bmad-output/planning-artifacts/architecture.md` (no longer in this repo)
 > (AD-1…AD-11) plus
-> [`ARCHITECTURE-SPINE.md`](../_bmad-output/planning-artifacts/architecture/architecture-50plusvoyagers-2026-08-13/ARCHITECTURE-SPINE.md)
+> `ARCHITECTURE-SPINE.md` (no longer in this repo)
 > (AD-12…AD-31). Where they disagree, those win.
 
 # Architecture — 50plusvoyagers
@@ -15,7 +15,7 @@
 Any non-asset URL
    → routes/web.php  Route::view('/{any?}', 'app')->where('any', '^(?!build|storage).*$')
    → resources/views/app.blade.php
-   → Vite bundle boots resources/js/app.tsx
+   → Vite bundle boots frontend/src/app.tsx
    → React Router takes over
 ```
 
@@ -60,7 +60,7 @@ app.tsx                 mount
 
 ## 3. Design System
 
-All tokens live in `resources/css/app.css`. There is **no `tailwind.config.js`** — Tailwind v4 is
+All tokens live in `frontend/src/styles/app.css`. There is **no `tailwind.config.js`** — Tailwind v4 is
 configured CSS-first.
 
 ### 3.1 Brand palette → shadcn tokens
@@ -136,7 +136,7 @@ CSS than as utility variants:
 
 ## 5. Content Model
 
-`resources/js/site/data/home.ts` is the whole content layer. Every export is typed:
+`frontend/src/site/data/home.ts` is the whole content layer. Every export is typed:
 
 ```ts
 const img = (name: string) => `/images/home/${name}.jpg`;
@@ -160,7 +160,7 @@ export const whyImage = {...}
 data, and the section components need no changes.
 
 Site-level metadata (name, phone, email, nav structure, footer columns) lives separately in
-`resources/js/site/config/site.ts`.
+`frontend/src/site/config/site.ts`.
 
 ## 6. Back-End Structure
 
@@ -176,7 +176,7 @@ Currently a bare skeleton. To add an API:
        health: '/up',
    )
    ```
-3. Consume it from the front end via the pre-configured client in `resources/js/lib/axios.ts`
+3. Consume it from the front end via the pre-configured client in `frontend/src/shared/lib/axios.ts`
    (base URL `VITE_API_BASE_URL`, default `/api`; sends `withCredentials` and `withXSRFToken`,
    so Sanctum-style cookie auth will work without extra wiring).
 
@@ -191,7 +191,7 @@ npm run build  →  tsc -b  (typecheck, no emit)  →  vite build  →  public/b
 ```
 
 - `laravel-vite-plugin` writes `public/build/manifest.json`; Blade's `@vite` reads it.
-- `@` aliases to `resources/js` in **both** `vite.config.ts` and `tsconfig.app.json` — update both
+- `@` aliases to `frontend/src` in **both** `vite.config.ts` and `tsconfig.app.json` — update both
   if it ever changes.
 - Dev server runs on `127.0.0.1:5173` with HMR and React Fast Refresh.
 
@@ -201,7 +201,7 @@ npm run build  →  tsc -b  (typecheck, no emit)  →  vite build  →  public/b
 | -------------------- | ----------------------------------------------------------------- |
 | Class merging        | Always `cn()` from `@/shared/lib/utils` — never string concatenation      |
 | Internal URLs        | Always `paths` from `@/routes/paths`                               |
-| Icons                | `lucide-react`; brand marks from `@/site/components/brand-icons`        |
+| Icons                | `lucide-react`; brand marks from `@/shared/ui/brand-icons`        |
 | Component variants   | `cva` in the shadcn primitive, not ad-hoc props                    |
 | Imports              | `@/` alias, never deep relative paths                              |
 | Type imports         | Inline `import { type X }` (enforced by ESLint)                    |

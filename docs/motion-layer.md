@@ -1,7 +1,7 @@
 # Motion Layer — 50plusvoyagers
 
 **Generated:** 2026-08-10
-**Primary source:** `resources/js/site/motion/motion.ts` (+ `site/motion/use-site-motion.ts`, styles in `resources/css/app.css`)
+**Primary source:** `frontend/src/site/motion/motion.ts` (+ `site/motion/use-site-motion.ts`, styles in `frontend/src/styles/app.css`)
 
 > **Read this before touching any animation or adding a homepage section.** The motion system
 > discovers elements by DOM convention. New markup that doesn't follow the convention will not
@@ -182,8 +182,8 @@ No GSAP, no Lenis, no parallax, no hover zoom. The CSS reduced-motion block sepa
 
 | File                                  | Role                                          |
 | ------------------------------------- | --------------------------------------------- |
-| `resources/js/site/motion/motion.ts`          | The engine — framework-agnostic               |
-| `resources/js/site/motion/use-site-motion.ts` | React wrapper (`useLayoutEffect` + guard)   |
-| `resources/js/site/layout/site-layout.tsx` | Calls the hook                     |
-| `resources/css/app.css`               | Card-hover CSS, Lenis CSS, boot cloak, reduced-motion overrides |
+| `frontend/src/site/motion/motion.ts`          | The engine — framework-agnostic               |
+| `frontend/src/site/motion/use-site-motion.ts` | React wrapper (`useLayoutEffect` + guard)   |
+| `frontend/src/site/layout/site-layout.tsx` | Calls the hook                     |
+| `frontend/src/styles/app.css`               | Card-hover CSS, Lenis CSS, boot cloak, reduced-motion overrides |
 | `resources/views/app.blade.php`       | Boot-cloak script + failsafe                  |

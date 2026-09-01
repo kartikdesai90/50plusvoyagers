@@ -45,7 +45,7 @@ So there is no confusion about what is being built versus what is being changed:
 | Public pages | Home, Group Tours (list + detail), Blog (list + detail), About, Membership, Workshops, Gift Holidays, Contact, Privacy, Terms, 404 |
 | Rendering | Laravel 13 + React 19 over Inertia, **with SSR** — full HTML in the first response |
 | Per-page SEO tags | Title, meta description, canonical, robots, Open Graph, Twitter card — all server-rendered |
-| Styling | Tailwind CSS v4, brand tokens defined once in `resources/css/app.css` — no hardcoded colours or sizes in components |
+| Styling | Tailwind CSS v4, brand tokens defined once in `frontend/src/styles/app.css` — no hardcoded colours or sizes in components |
 | Responsive | Fluid design (not fixed breakpoints); tested desktop, tablet, Android, iOS |
 | Admin panel | Login + dashboard, with working modules for **Hero banners, Feedback (text + video), Photo album, Blog** |
 | Homepage data | Hero, banners, feedback text, feedback videos already read from the database via the admin panel |
@@ -216,7 +216,7 @@ you have seen it.
 | --- | --- |
 | **Well commented / remarks** | Every file carries a header explaining what it is for and why it is built that way; non-obvious logic is commented inline. The existing codebase already follows this — the controllers and components document their own reasoning. |
 | **Not broken or disconnected at any point** | Every change goes through a build, a lint pass, type-checking and the test suite before it can be deployed. Staging is deployed and reviewed before production, every time. |
-| **Proper JS/CSS structure, not hardcoded in main code** | Tailwind CSS v4 with all brand tokens (colours, typography scale, spacing) declared **once** in `resources/css/app.css`. No colour, font size or spacing value is hardcoded in a component. JS/CSS are compiled, minified, hashed bundles — no inline styles or scripts. |
+| **Proper JS/CSS structure, not hardcoded in main code** | Tailwind CSS v4 with all brand tokens (colours, typography scale, spacing) declared **once** in `frontend/src/styles/app.css`. No colour, font size or spacing value is hardcoded in a component. JS/CSS are compiled, minified, hashed bundles — no inline styles or scripts. |
 | **Naming standards, structure, formatting** | Enforced by tooling, not goodwill: ESLint (zero warnings allowed), Prettier, TypeScript strict mode for the front end; Laravel Pint for PHP. The build **fails** on a violation, so standards cannot drift. |
 | **Error handling and security — no hardcoded passwords or DB details** | All credentials in the server `.env`, never in code, never in Git (`.gitignore` enforces this). CRM access is a SELECT-only user. All queries parameterised — SQL injection is not possible. CSRF protection on every form; output escaped against XSS; secure session cookies; rate-limited login; file uploads type- and size-validated. Errors are logged server-side and shown to visitors as a branded page — never a stack trace. |
 | **Use functions / components** | The front end is composed of small, single-purpose React components; the back end uses controllers, form-request validators, API resources and Eloquent models. Nothing is written twice. |

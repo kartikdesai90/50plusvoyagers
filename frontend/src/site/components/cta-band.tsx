@@ -2,7 +2,7 @@ import { ArrowRight, Mail, Phone } from 'lucide-react';
 
 import { Container, Section, SectionHeading } from '@/site/components/section';
 import { NavLink } from '@/site/components/nav-link';
-import { WhatsAppIcon } from '@/site/components/brand-icons';
+import { WhatsAppIcon } from '@/shared/ui/brand-icons';
 import { Button } from '@/shared/ui/button';
 import { siteConfig } from '@/site/config/site';
 

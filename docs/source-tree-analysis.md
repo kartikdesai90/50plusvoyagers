@@ -20,7 +20,7 @@ config, brand icons) from masquerading as shared utilities.
 ## Front end
 
 ```
-resources/js/
+frontend/src/
 ├── app.tsx                          mounts #app
 │
 ├── routes/
@@ -117,7 +117,7 @@ Update these together with any move:
 
 | File | Setting |
 |---|---|
-| `eslint.config.js` | `resources/js/shared/ui/**` and `resources/js/routes/**` react-refresh overrides |
+| `eslint.config.js` | `frontend/src/shared/ui/**` and `frontend/src/routes/**` react-refresh overrides |
 | `components.json` | `ui` → `@/shared/ui`, `lib` → `@/shared/lib`, `utils` → `@/shared/lib/utils` |
 | `vite.config.ts` + `tsconfig.app.json` | the `@` alias (both, together) |
 

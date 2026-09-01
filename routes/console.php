@@ -1,8 +1,13 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
-
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+/*
+|--------------------------------------------------------------------------
+| Console Routes
+|--------------------------------------------------------------------------
+|
+| Closure-based Artisan commands belong here. The application's own commands
+| are classes under `app/Console/Commands` and are discovered automatically,
+| so this file is empty — `bootstrap/app.php` still points at it, which is why
+| it stays.
+|
+*/

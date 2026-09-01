@@ -9,10 +9,11 @@
 > **Read this first.** On 2026-08-18 the database moved from MySQL to PostgreSQL
 > and the front end from React/Inertia to Next.js 16. See
 > [Migration: PostgreSQL and Next.js](./migration-postgresql-and-nextjs.md).
-> The documents below were generated before that and still describe paths under
-> `resources/js`, Vite, Inertia and the SSR sidecar. What they say about the
-> components and the motion layer is still true — those moved unchanged — but
-> the transport and the paths are not.
+> The documents below were generated before that and still describe Vite,
+> Inertia and the SSR sidecar. What they say about the components and the
+> motion layer is still true — those moved unchanged — and their file paths
+> have since been corrected to the current `frontend/src` tree, but the
+> transport they describe is not.
 
 ## Project Overview
 
@@ -32,7 +33,7 @@ interesting architecture is in `frontend/src`.
 - **Entry Point:** `frontend/src/app/layout.tsx`, with the route tree beneath it
 - **Architecture Pattern:** Server-rendered public area and a client-rendered admin panel, both Next routes, over a Laravel JSON API
 - **Database:** PostgreSQL (`50_plusvoyagers`)
-- **Deployment:** `deploy/README.md` and `deploy/supervisor/`
+- **Deployment:** not configured. Two processes — `next start` for the front end, PHP-FPM for the API — with Laravel bound to localhost behind Next.
 
 ## Generated Documentation
 
@@ -59,10 +60,18 @@ admin panel authenticates with a session cookie and needs that group's session a
 
 Laravel serves no HTML at all; every page address belongs to the front end.
 
+### Client-Facing Plans
+
+- [Website Revamp Plan](./website-revamp-plan.md) — SEO migration, CRM integration, deliverables (17 Aug 2026).
+  **Section 3 is superseded** by the document below.
+- [Tours Module Development Plan](./tours-module-development-plan.md) — the tours module: business
+  logic, the six new content tables, the `tour_code` join to `tb_group_tour`, the HTML content
+  migration, and the phase plan. Written after the client confirmed that tour *page content* has
+  never lived in the CRM. Verified against the real 32-row dump.
+
 ## Existing Documentation
 
 - [README.md](../README.md) — setup, scripts, structure. Rewritten for the current stack.
-- [deploy/README.md](../deploy/README.md) — the two processes, the proxy, and deploy order.
 
 ## Getting Started
 

@@ -10,7 +10,7 @@ import {
     WhatsAppIcon,
     XIcon,
     YouTubeIcon,
-} from '@/site/components/brand-icons';
+} from '@/shared/ui/brand-icons';
 import { NavLink } from '@/site/components/nav-link';
 import { paths } from '@/routes/paths';
 import { siteConfig } from '@/site/config/site';

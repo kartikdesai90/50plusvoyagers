@@ -109,7 +109,7 @@ real. Use CDP `Emulation.setDeviceMetricsOverride` for genuine mobile widths.
 
 - **Strict everything** — `strict`, `noUnusedLocals`, `noUnusedParameters`, `verbatimModuleSyntax`.
 - **Inline type imports** are enforced: `import { type Foo } from '…'`.
-- **Path alias `@/`** → `resources/js/`. Never use deep relative imports. Declared in both
+- **Path alias `@/`** → `frontend/src/`. Never use deep relative imports. Declared in both
   `vite.config.ts` and `tsconfig.app.json` — change both together.
 - **`react-hooks` rules are errors.** Notably `set-state-in-effect`: calling `setState` synchronously
   in an effect body will fail lint. Prefer deriving state or handling it in the event handler.
@@ -118,7 +118,7 @@ real. Use CDP `Emulation.setDeviceMetricsOverride` for genuine mobile widths.
 ### Styling
 
 - Tailwind v4, **CSS-first**. There is no `tailwind.config.js`; tokens live in `@theme` in
-  `resources/css/app.css`.
+  `frontend/src/styles/app.css`.
 - Merge classes with `cn()` from `@/shared/lib/utils`.
 - Prefer brand token utilities (`bg-brand`, `text-ink-muted`, `border-hairline`) for design work.
 - Preserve the `clamp()` fluid values — don't convert them into breakpoint steps.
@@ -132,36 +132,33 @@ real. Use CDP `Emulation.setDeviceMetricsOverride` for genuine mobile widths.
 
 ## Testing
 
-Current coverage is minimal and worth improving:
-
-- `tests/Feature/ExampleTest.php` — asserts `GET /` returns 200.
-- `tests/Unit/ExampleTest.php` — stock placeholder.
+- The PHPUnit suite is a single `Feature` group under `tests/Feature/` — the
+  admin CRUD surface, the public API and the homepage bands. `tests/Unit/` does
+  not exist; nothing here has needed an isolated unit yet.
 - **No front-end test setup exists.** If you add one, Vitest + Testing Library fits the stack.
 
 The de-facto front-end safety net today is `npm run types` + `npm run lint` + a successful build.
 
 ## Adding shadcn/ui Components
 
-`components.json` is configured (`new-york`, `neutral`, CSS variables), so:
+There is no `components.json` and the shadcn CLI is not wired up: the primitives
+in `frontend/src/shared/ui/` were vendored in by hand and are edited in place.
+Add a new one by copying the upstream source into that directory and adjusting
+it to the tokens in `frontend/src/styles/app.css`.
 
-```bash
-npx shadcn@latest add dialog
-```
-
-installs into `resources/js/shared/ui/`. `Button` and `Card` are already present — note that
-`Button` has **custom brand variants** (`brand`, `outline_circle`, `pill`, `circle`); if you ever
-re-add or upgrade it, re-apply those.
+Note that `Button` has **custom brand variants** (`brand`, `outline_circle`,
+`pill`, `circle`); if you ever re-add or upgrade it, re-apply those.
 
 ## Common Tasks
 
 | Task                          | Where                                                                  |
 | ----------------------------- | ---------------------------------------------------------------------- |
-| Change homepage copy          | `resources/js/site/data/home.ts`                                             |
+| Change homepage copy          | `frontend/src/site/data/home.ts`                                             |
 | Swap a homepage image         | Drop the JPEG in `public/images/home/`, reference via `img('name')`     |
-| Change nav / contact details  | `resources/js/site/config/site.ts`                                           |
-| Adjust brand colours          | `:root` in `resources/css/app.css`                                      |
+| Change nav / contact details  | `frontend/src/site/config/site.ts`                                           |
+| Adjust brand colours          | `:root` in `frontend/src/styles/app.css`                                      |
 | Adjust section rhythm         | `Section` `top`/`bottom` props, or the `--spacing-*` tokens             |
-| Add a client route            | `resources/js/routes/paths.ts` then `routes/index.tsx`                  |
+| Add a client route            | `frontend/src/routes/paths.ts`, then a directory under `frontend/src/app/` |
 | Add a section                 | See [component-inventory.md](./component-inventory.md#adding-a-new-homepage-section) |
 | Touch animation               | See [motion-layer.md](./motion-layer.md)                                |
 

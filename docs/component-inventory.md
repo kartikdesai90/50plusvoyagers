@@ -75,7 +75,7 @@ shadcn button extended with brand variants. Use `asChild` to render as an `<a>`.
 Stock shadcn card (`Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`).
 **Not currently used by the homepage** — the design's cards are bespoke. Retained for future UI.
 
-## Icons — `site/components/brand-icons.tsx`
+## Icons — `shared/ui/brand-icons.tsx`
 
 `lucide-react` v1 **removed brand icons**, so these are hand-drawn to match the reference paths:
 
@@ -108,7 +108,7 @@ See [motion-layer.md](./motion-layer.md).
 
 ## Adding a New Homepage Section
 
-1. **Content** → add a typed export to `resources/js/site/data/home.ts`.
+1. **Content** → add a typed export to `frontend/src/site/data/home.ts`.
 2. **Component** → create `site/features/home/<name>.tsx` using `Section` / `Container` / `Eyebrow` /
    `SectionHeading`. Keep it a pure renderer.
 3. **Compose** → import and place it in `pages/home.tsx`.

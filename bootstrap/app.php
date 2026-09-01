@@ -18,14 +18,14 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         /*
-         * On Render — and behind any TLS-terminating proxy — the PHP process
-         * receives plain HTTP, and only the `X-Forwarded-*` headers say the
-         * visitor arrived over HTTPS. Without trusting them Laravel builds
-         * `http://` URLs and marks the session cookie insecure, which the
-         * admin panel's cookie authentication depends on getting right.
+         * Behind any TLS-terminating proxy the PHP process receives plain
+         * HTTP, and only the `X-Forwarded-*` headers say the visitor arrived
+         * over HTTPS. Without trusting them Laravel builds `http://` URLs and
+         * marks the session cookie insecure, which the admin panel's cookie
+         * authentication depends on getting right.
          *
-         * The proxy is Render's own edge and is not addressable, so there is no
-         * IP range to pin to; `'*'` is the documented configuration for this.
+         * Managed proxies are usually not addressable, so there is no IP range
+         * to pin to; `'*'` is the documented configuration for this.
          */
         $middleware->trustProxies(
             at: '*',

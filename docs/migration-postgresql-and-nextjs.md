@@ -190,7 +190,7 @@ control, so nothing here can be recovered by other means:
 The deeper generated documents in this folder — `architecture.md`,
 `component-inventory.md`, `source-tree-analysis.md`, `development-guide.md`,
 `motion-layer.md`, `project-overview.md` — still describe the Inertia/Vite
-arrangement and paths under `resources/js`. The component and motion material is
+arrangement and paths under `frontend/src`. The component and motion material is
 still accurate about the components themselves, which moved unchanged; the paths
 and the transport are not. Regenerating them is the `document-project` workflow's
 job, not this migration's.

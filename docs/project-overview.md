@@ -38,7 +38,7 @@ Browser
   │           └─ resources/views/app.blade.php   (Blade shell: #app + Vite tags + font links)
   │
   └─ Vite bundle
-        └─ resources/js/app.tsx
+        └─ frontend/src/app.tsx
               └─ AppRouter (react-router BrowserRouter)
                     └─ SiteLayout           ← starts the motion layer
                           ├─ SiteHeader
@@ -51,7 +51,7 @@ one-directional dependencies — see [source-tree-analysis.md](./source-tree-ana
 `_bmad-output/planning-artifacts/architecture.md`.
 
 **Key characteristic:** the server contributes no data to the public site yet. Every string and image path on the homepage
-originates in `resources/js/site/data/home.ts`. Swapping to a CMS or API later means changing that one
+originates in `frontend/src/site/data/home.ts`. Swapping to a CMS or API later means changing that one
 module's source, not the components.
 
 ## Technology Stack
@@ -68,7 +68,7 @@ module's source, not the components.
 | Build            | Vite                | ^7.0.7    | via `laravel-vite-plugin` ^2.0                               |
 | Styling          | Tailwind CSS        | ^4.0.0    | CSS-first config via `@theme` — no `tailwind.config.js`      |
 | UI primitives    | shadcn/ui           | —         | `new-york` style, `neutral` base, CSS variables              |
-| Icons            | lucide-react        | ^1.28.0   | **v1 removed brand icons** — see `site/components/brand-icons.tsx` |
+| Icons            | lucide-react        | ^1.28.0   | **v1 removed brand icons** — see `shared/ui/brand-icons.tsx` |
 | Animation        | gsap                | ^3.15.0   | core + ScrollTrigger                                         |
 | Smooth scroll    | lenis               | ^1.3.26   | MIT                                                          |
 | Text splitting   | split-type          | ^0.3.4    | ISC — hero heading line stagger                              |
@@ -80,7 +80,7 @@ module's source, not the components.
 
 ## Architectural Decisions Worth Knowing
 
-1. **Design tokens are mapped onto shadcn's token names.** In `resources/css/app.css`, the brand
+1. **Design tokens are mapped onto shadcn's token names.** In `frontend/src/styles/app.css`, the brand
    palette drives `--primary`, `--background`, `--border`, etc. So `Button` and `Card` inherit the
    brand automatically without per-component overrides.
 
@@ -109,8 +109,8 @@ module's source, not the components.
 
 | Goal                          | Start here                                                 |
 | ----------------------------- | ---------------------------------------------------------- |
-| Change homepage copy/images   | `resources/js/site/data/home.ts`                                 |
+| Change homepage copy/images   | `frontend/src/site/data/home.ts`                                 |
 | Add a homepage section        | [component-inventory.md](./component-inventory.md) → "Adding a section" |
-| Adjust colours/spacing/type   | `resources/css/app.css` (`:root` + `@theme`)                |
+| Adjust colours/spacing/type   | `frontend/src/styles/app.css` (`:root` + `@theme`)                |
 | Touch animations              | [motion-layer.md](./motion-layer.md)                        |
 | Build the API                 | [architecture.md](./architecture.md) → "Back-end structure" |

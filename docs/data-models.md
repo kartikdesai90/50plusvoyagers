@@ -2,7 +2,7 @@
 > This was generated on 2026-08-10, when `User` was the only model, and was marked stale while the
 > 38-table business schema existed. That schema was reverted on 2026-08-17, so this file describes
 > the codebase again. The 38-table design is still on paper in
-> [`_bmad-output/planning-artifacts/data-model.md`](../_bmad-output/planning-artifacts/data-model.md)
+> `_bmad-output/planning-artifacts/data-model.md` (no longer in this repo)
 > as a proposal, and its implementation is in `_reverted/`.
 
 # Data Models — 50plusvoyagers
@@ -49,7 +49,7 @@ assignment — `AdminUserSeeder` sets the attribute explicitly. See
 Apart from admin accounts there is **no persisted domain data** — no trips, departures, testimonials,
 or articles in the database. Everything the homepage shows is hard-coded on the front end (below).
 
-## 2. Front-End Content Model — `resources/js/site/data/home.ts`
+## 2. Front-End Content Model — `frontend/src/site/data/home.ts`
 
 This module is the de-facto content schema. Every export is typed, and the types are the contract a
 future API should satisfy.
@@ -84,7 +84,7 @@ const img = (name: string) => `/images/home/${name}.jpg`;
 - **Content is fully decoupled from markup.** Section components import these arrays and render
   them; no copy is inlined in JSX.
 
-### Site configuration — `resources/js/site/config/site.ts`
+### Site configuration — `frontend/src/site/config/site.ts`
 
 Separate from page content: brand name, phone/email (and their `tel:`/`mailto:` hrefs), the split
 `navLeft`/`navRight` header nav, and the four-column `footerNav`.
@@ -98,7 +98,7 @@ When trips/articles/testimonials become dynamic:
    `articles`, `gallery_items`).
 3. Create `routes/api.php` **and register it** in `bootstrap/app.php` — `withRouting()` currently
    declares only `web`, `commands`, and `health`.
-4. Fetch via the pre-configured client in `resources/js/lib/axios.ts` (base URL
+4. Fetch via the pre-configured client in `frontend/src/shared/lib/axios.ts` (base URL
    `VITE_API_BASE_URL`, default `/api`, sends `withCredentials` + `withXSRFToken` so Sanctum
    cookie auth works without extra setup).
 5. Normalise prices to integers-plus-currency and dates to ISO, formatting at render time.

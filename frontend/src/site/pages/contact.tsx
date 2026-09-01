@@ -7,7 +7,7 @@ import { EnquiryForm } from '@/site/components/enquiry-form';
 import { FaqList } from '@/site/components/faq-list';
 import { NavLink } from '@/site/components/nav-link';
 import { PageHero } from '@/site/components/page-hero';
-import { WhatsAppIcon } from '@/site/components/brand-icons';
+import { WhatsAppIcon } from '@/shared/ui/brand-icons';
 import { contactHours, contactOffices, faqs } from '@/site/data/about';
 import { siteConfig } from '@/site/config/site';
 
