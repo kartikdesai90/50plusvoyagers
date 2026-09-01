@@ -8,14 +8,17 @@ use Illuminate\Support\Facades\Schema;
 /**
  * The tours a record can be attached to.
  *
- * Empty until the Tours module exists. Every screen that offers a tour renders
- * its picker and its filter only when this list has something in it, so those
- * modules are complete on the day that table arrives and need no change beyond
- * this one query.
+ * Every screen that offers a tour renders its picker and its filter only when
+ * this list has something in it, so a fresh install with no tours yet shows no
+ * empty control.
  *
- * Read through the query builder rather than a model on purpose: there is no
- * Tour model in this build, and adding an empty one to satisfy a picker would
- * be pretending the module exists.
+ * Named from `tour_name`, which is what the client's CRM calls the column. The
+ * table check stays: the modules that call this must keep working against a
+ * database where the migration has not run yet.
+ *
+ * Read through the query builder rather than the model on purpose. This is a
+ * picker — two columns of a row — and going through Eloquent would hydrate
+ * whole models to throw all but the name away.
  */
 class TourChoices
 {
@@ -31,9 +34,9 @@ class TourChoices
                 Schema::hasColumn('tours', 'deleted_at'),
                 fn ($query) => $query->whereNull('deleted_at'),
             )
-            ->orderBy('title')
-            ->get(['id', 'title'])
-            ->map(fn ($tour) => ['id' => (int) $tour->id, 'name' => (string) $tour->title])
+            ->orderBy('tour_name')
+            ->get(['id', 'tour_name'])
+            ->map(fn ($tour) => ['id' => (int) $tour->id, 'name' => (string) $tour->tour_name])
             ->all();
     }
 }

@@ -3,6 +3,7 @@ import {
     GalleryHorizontal,
     Images,
     LayoutDashboard,
+    Map,
     MessageSquareQuote,
     Newspaper,
     Settings,
@@ -44,6 +45,11 @@ export const adminNav: AdminNavSection[] = [
     {
         title: 'Website',
         items: [
+            {
+                label: 'Tours',
+                href: paths.admin.tours,
+                icon: Map,
+            },
             {
                 label: 'Hero & Banner',
                 href: paths.admin.heroBanners,

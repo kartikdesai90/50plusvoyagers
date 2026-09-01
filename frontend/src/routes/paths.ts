@@ -74,6 +74,16 @@ export const paths = {
         blog: '/admin/blog',
         blogCreate: '/admin/blog/create',
         blogEdit: '/admin/blog/:postId/edit',
+
+        /**
+         * The group tours, as the CRM records them. `groupTours` above is where
+         * travellers browse them — and for now those are two separate things:
+         * this module holds the CRM's five fields, and the public listing still
+         * runs on its own catalogue until the display fields are agreed.
+         */
+        tours: '/admin/tours',
+        tourCreate: '/admin/tours/create',
+        tourEdit: '/admin/tours/:tourId/edit',
     },
 } as const;
 
@@ -94,6 +104,9 @@ export const galleryEditPath = (id: number): string => `/admin/gallery/${id}/edi
 
 /** The address of one post's edit screen. */
 export const blogEditPath = (id: number): string => `/admin/blog/${id}/edit`;
+
+/** The address of one tour's edit screen. */
+export const tourEditPath = (id: number): string => `/admin/tours/${id}/edit`;
 
 /** Every leaf string in `paths`, however deeply nested. */
 type Leaves<T> = T extends string ? T : { [K in keyof T]: Leaves<T[K]> }[keyof T];

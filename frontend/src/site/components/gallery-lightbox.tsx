@@ -3,7 +3,6 @@
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useCallback, useEffect, useRef } from 'react';
 
-import { SiteImage } from '@/site/components/site-image';
 import type { GalleryPhoto } from '@/site/types/gallery';
 
 type GalleryLightboxProps = {
@@ -140,23 +139,36 @@ export function GalleryLightbox({ photos, index, onClose, onMove }: GalleryLight
             {/* Stops a click on the picture or its caption reaching the
                 backdrop handler above. */}
             <figure
-                className="flex max-h-full w-full max-w-[1100px] flex-col items-center gap-5"
+                className="flex w-full max-w-[1100px] flex-col items-center gap-5"
                 onClick={(event) => event.stopPropagation()}
             >
-                <div className="relative flex min-h-0 w-full flex-1 items-center justify-center">
-                    <SiteImage
-                        /* Keyed so React swaps the element rather than reusing
-                           it — without it the previous picture stays on screen
-                           until the next one decodes. */
-                        key={photo.id}
-                        src={photo.image_url ?? ''}
-                        alt={photo.image_alt}
-                        /* Nearly the full viewport, capped at the frame's own
-                           width on anything wider. */
-                        sizes="(max-width: 1100px) 92vw, 1100px"
-                        className="voy-lightbox-image"
-                    />
-                </div>
+                {/*
+                 * A plain `img`, where the rest of the site uses `SiteImage`.
+                 *
+                 * That component draws with `fill`, which positions the
+                 * picture absolutely and asks the caller for a box of known
+                 * height to fill — every other caller has one, because they
+                 * all draw into a fixed-height card. This is the one place
+                 * that cannot: the picture has to take its size from the
+                 * photograph and the viewport, which is the shape `fill`
+                 * exists to avoid needing. Given a parent with no resolved
+                 * height it collapses to nothing, which is exactly what it
+                 * did here.
+                 *
+                 * Nothing is lost by dropping out of the optimiser. The grid
+                 * behind has already fetched and decoded this file at a card's
+                 * width, and a lightbox is the one view that wants the full
+                 * picture rather than a resized one.
+                 */}
+                <img
+                    /* Keyed so React swaps the element rather than reusing it —
+                       without it the previous picture stays on screen until the
+                       next one decodes. */
+                    key={photo.id}
+                    src={photo.image_url ?? ''}
+                    alt={photo.image_alt}
+                    className="voy-lightbox-image"
+                />
 
                 <figcaption className="w-full max-w-[720px] shrink-0 text-center">
                     <h2 className="font-serif text-[clamp(20px,2.4vw,27px)]/[1.15] font-medium text-white">

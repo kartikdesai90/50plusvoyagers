@@ -21,6 +21,24 @@ const nextConfig: NextConfig = {
     reactStrictMode: true,
 
     /**
+     * Hostnames the dev server will serve its own assets to.
+     *
+     * Next's development server refuses cross-origin requests for `/_next/*`
+     * and `/__nextjs_font/*` with a bare `403 Unauthorized`. A browser sends an
+     * `Origin` header on module scripts and fonts, so reaching this app through
+     * any hostname other than the one it is listening on means every chunk is
+     * refused -- the HTML renders and the JavaScript never arrives, which in
+     * the admin panel looks like it hanging forever on "Checking your session".
+     *
+     * `curl` does not send `Origin`, which is why the assets appear fine when
+     * fetched from a terminal and fail only in the browser.
+     *
+     * This affects development only; a production build serves static assets
+     * without the check.
+     */
+    allowedDevOrigins: ['50plusvoyagers.test', '*.50plusvoyagers.test'],
+
+    /**
      * Everything Laravel still owns, served through this origin.
      *
      * This is not a convenience. The admin panel authenticates with a Laravel

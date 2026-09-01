@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\FeedbackController;
 use App\Http\Controllers\Admin\GalleryItemController;
 use App\Http\Controllers\Admin\HeroBannerController;
 use App\Http\Controllers\Admin\SiteSettingController;
+use App\Http\Controllers\Admin\TourController;
 use App\Http\Controllers\Admin\WhoWeAreCardController;
 use App\Http\Controllers\Admin\WhyUsSectionController;
 use Illuminate\Support\Facades\Route;
@@ -103,5 +104,23 @@ Route::prefix('api/admin')->name('admin.api.')->group(function () {
         Route::get('blog/{blog}', [BlogPostController::class, 'show'])->name('blog.show');
         Route::post('blog/{blog}', [BlogPostController::class, 'update'])->name('blog.update');
         Route::delete('blog/{blog}', [BlogPostController::class, 'destroy'])->name('blog.destroy');
+
+        /*
+         * The group tours.
+         *
+         * Five endpoints, because this is a list an editor browses and adds to
+         * rather than a fixed band saved whole.
+         *
+         * The update is a POST like every other module's, though this one
+         * carries no file and PUT would describe it better. Consistency wins:
+         * one rule for how the panel saves is worth more than one endpoint
+         * being technically tidier than its neighbours, and the day a tour
+         * carries a photograph this needs no change.
+         */
+        Route::get('tours', [TourController::class, 'index'])->name('tours.index');
+        Route::post('tours', [TourController::class, 'store'])->name('tours.store');
+        Route::get('tours/{tour}', [TourController::class, 'show'])->name('tours.show');
+        Route::post('tours/{tour}', [TourController::class, 'update'])->name('tours.update');
+        Route::delete('tours/{tour}', [TourController::class, 'destroy'])->name('tours.destroy');
     });
 });

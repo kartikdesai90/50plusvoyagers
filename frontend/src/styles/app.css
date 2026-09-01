@@ -685,14 +685,26 @@
     }
 
     /*
-     * The picture takes the room the caption does not want. `min-height: 0` is
-     * what allows it to shrink inside the flex column at all — without it a tall
-     * photograph on a short screen pushes its own caption off the bottom.
+     * The picture, at whatever size fits.
+     *
+     * Bounded rather than sized: `max-` on both axes lets a photograph draw at
+     * its own shape and stop at the smaller of the two limits, so a tall one is
+     * capped by the height and a wide one by the width. Setting a height
+     * instead is what collapsed this to nothing — the parent is a flex item
+     * with no resolved height of its own, so a percentage had nothing to be a
+     * percentage of.
+     *
+     * The height leaves room for the caption underneath: the layer's own
+     * padding is already subtracted by `100dvh` minus the padding box, and the
+     * `12rem` is the caption at its tallest plus the gap above it.
      */
     .voy-lightbox-image {
-        @apply size-full;
+        max-inline-size: 100%;
+        max-block-size: min(76vh, calc(100dvh - 12rem));
+        inline-size: auto;
+        block-size: auto;
         object-fit: contain;
-        min-block-size: 0;
+        border-radius: 10px;
     }
 
     /*
