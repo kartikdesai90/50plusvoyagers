@@ -26,7 +26,6 @@ return new class extends Migration
             // reader, as opposed to the one written for a screen reader.
             $table->text('caption')->nullable();
 
-            $table->string('image_disk', 40)->default('public');
             $table->string('image_path', 2048);
 
             /*

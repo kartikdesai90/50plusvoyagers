@@ -9,6 +9,15 @@ export type FormTab = {
     label: string;
     /** Said under the strip when this tab is the one showing. */
     description?: string;
+    /**
+     * Something in this panel needs attention.
+     *
+     * Marked on the tab itself because a panel that is not showing cannot
+     * report its own problem: the server rejects a field, the banner appears,
+     * and the field it belongs to is behind a tab the editor is not looking at.
+     * A dot on the strip is what turns that into something findable.
+     */
+    hasError?: boolean;
     panel: React.ReactNode;
 };
 
@@ -28,10 +37,33 @@ export type FormTab = {
  * Keyboard and screen-reader behaviour is the ARIA tabs pattern: one stop in
  * the tab order, arrow keys between the tabs, and each panel named by the tab
  * that opens it.
+ *
+ * The selection is normally the strip's own business. A caller that needs to
+ * move it — to bring a rejected field into view, say — passes `active` and
+ * `onActiveChange` and owns it instead; omitting them keeps the state here,
+ * which is what every caller that has no such need already does.
  */
-export function FormTabs({ tabs }: { tabs: FormTab[] }) {
+export function FormTabs({
+    tabs,
+    active: controlledActive,
+    onActiveChange,
+}: {
+    tabs: FormTab[];
+    /** Controlled selection. Omit to let the strip remember its own. */
+    active?: string;
+    onActiveChange?: (id: string) => void;
+}) {
     const ids = useId();
-    const [active, setActive] = useState(tabs[0]?.id);
+    const [uncontrolledActive, setUncontrolledActive] = useState(tabs[0]?.id);
+
+    const active = controlledActive ?? uncontrolledActive;
+
+    const setActive = (id: string) => {
+        /* Kept in step even while controlled, so a caller that stops passing
+           `active` does not snap the strip back to a stale selection. */
+        setUncontrolledActive(id);
+        onActiveChange?.(id);
+    };
 
     const current = tabs.find((tab) => tab.id === active) ?? tabs[0];
 
@@ -76,7 +108,7 @@ export function FormTabs({ tabs }: { tabs: FormTab[] }) {
                                 tabIndex={isActive ? 0 : -1}
                                 onClick={() => setActive(tab.id)}
                                 className={cn(
-                                    'rounded-lg px-3.5 py-2 text-sm font-medium transition-colors',
+                                    'inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors',
                                     'focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
                                     isActive
                                         ? 'bg-muted text-foreground'
@@ -84,6 +116,20 @@ export function FormTabs({ tabs }: { tabs: FormTab[] }) {
                                 )}
                             >
                                 {tab.label}
+                                {/*
+                                 * Said as well as shown. A dot alone is a
+                                 * colour, and the editor who most needs to know
+                                 * which panel was rejected may not see it.
+                                 */}
+                                {tab.hasError ? (
+                                    <>
+                                        <span
+                                            aria-hidden="true"
+                                            className="size-1.5 rounded-full bg-destructive"
+                                        />
+                                        <span className="sr-only">(needs attention)</span>
+                                    </>
+                                ) : null}
                             </button>
                         );
                     })}

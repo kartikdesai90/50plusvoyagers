@@ -21,6 +21,12 @@ use Illuminate\Support\Facades\Schema;
  * Nearly everything is nullable. A site with no LinkedIn account is not a site
  * with a broken settings row, and the public side falls back to what the design
  * ships with wherever a value is missing.
+ *
+ * The long URL and path columns are `text` rather than a wide `varchar`. Under
+ * `utf8mb4` MySQL counts four bytes per character towards InnoDB's 65535-byte
+ * row limit, and nine 2048-character columns on one row overflow it outright;
+ * `text` is stored away from the row and does not count against that. None of
+ * them is indexed, which is the only thing the change would have cost.
  */
 return new class extends Migration
 {
@@ -41,14 +47,14 @@ return new class extends Migration
             // derived, so an editor cannot paste one that is subtly wrong.
             $table->string('whatsapp_number', 40)->nullable();
             $table->text('address')->nullable();
-            $table->string('map_url', 2048)->nullable();
+            $table->text('map_url')->nullable();
 
             /* ----------------------------------------------------- social */
-            $table->string('facebook_url', 2048)->nullable();
-            $table->string('instagram_url', 2048)->nullable();
-            $table->string('youtube_url', 2048)->nullable();
-            $table->string('linkedin_url', 2048)->nullable();
-            $table->string('twitter_url', 2048)->nullable();
+            $table->text('facebook_url')->nullable();
+            $table->text('instagram_url')->nullable();
+            $table->text('youtube_url')->nullable();
+            $table->text('linkedin_url')->nullable();
+            $table->text('twitter_url')->nullable();
             /*
              * Anywhere else the business has an account. JSON rather than a
              * table of its own for the same reason the journal's tags are:
@@ -57,20 +63,17 @@ return new class extends Migration
             $table->json('other_socials')->nullable();
 
             /* ---------------------------------------------------- website */
-            $table->string('logo_disk', 40)->nullable();
-            $table->string('logo_path', 2048)->nullable();
+            $table->text('logo_path')->nullable();
             $table->string('logo_alt', 255)->nullable();
-            $table->string('favicon_disk', 40)->nullable();
-            $table->string('favicon_path', 2048)->nullable();
-            $table->string('website_url', 2048)->nullable();
+            $table->text('favicon_path')->nullable();
+            $table->text('website_url')->nullable();
 
             /* -------------------------------------------------------- SEO */
             // What a page falls back to when it writes no metadata of its own.
             $table->string('meta_title')->nullable();
-            $table->string('meta_description', 500)->nullable();
-            $table->string('meta_keywords', 500)->nullable();
-            $table->string('og_image_disk', 40)->nullable();
-            $table->string('og_image_path', 2048)->nullable();
+            $table->text('meta_description')->nullable();
+            $table->text('meta_keywords')->nullable();
+            $table->text('og_image_path')->nullable();
 
             /* ----------------------------------------------------- footer */
             // The words after the ©. The year is not stored: a year in a

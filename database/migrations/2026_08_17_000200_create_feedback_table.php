@@ -37,7 +37,6 @@ return new class extends Migration
              * have, and the upload is for when there is no link to give.
              */
             $table->string('video_url', 2048)->nullable();
-            $table->string('video_disk', 40)->nullable();
             $table->string('video_path', 2048)->nullable();
 
             /*
@@ -46,10 +45,8 @@ return new class extends Migration
              * on the record, so the name is the description, and asking an
              * editor to type it a second time only invites the two to disagree.
              */
-            $table->string('thumbnail_disk', 40)->nullable();
             $table->string('thumbnail_path', 2048)->nullable();
 
-            $table->string('photo_disk', 40)->nullable();
             $table->string('photo_path', 2048)->nullable();
 
             // Out of five, or nothing at all — not every traveller gives one.

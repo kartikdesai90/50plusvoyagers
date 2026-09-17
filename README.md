@@ -1,7 +1,7 @@
 # 50 Plus Voyagers
 
 A Next.js 16 front end (App Router, React 19, TypeScript, Tailwind CSS v4, shadcn/ui) in front of a
-Laravel 13 JSON API on PostgreSQL.
+Laravel 13 JSON API on MySQL.
 
 Next serves every address a person types — the public site and the `/admin` panel alike — and
 reaches Laravel for data. Laravel serves no HTML.
@@ -12,11 +12,11 @@ reaches Laravel for data. Laravel serves no HTML.
 | ---------- | ------------------------------------------ |
 | PHP        | 8.3+                                       |
 | Composer   | 2.x                                        |
-| PostgreSQL | 14+ (developed against 18)                 |
+| MySQL      | 8.0+ (developed against 8.4)               |
 | Node.js    | 20.9+ or 22.x (Next 16 requirement)        |
 
-The PHP build needs `pdo_pgsql`. `php -m | grep pgsql` will tell you whether you have it; on a stock
-Windows PHP it is present but commented out in `php.ini`.
+The PHP build needs `pdo_mysql`. `php -m | grep pdo_mysql` will tell you whether you have it; it is
+enabled by default on most builds.
 
 ## Getting started
 
@@ -25,7 +25,7 @@ composer install
 npm --prefix frontend install
 cp .env.example .env
 php artisan key:generate
-createdb 50_plusvoyagers        # or however your host makes databases
+mysql -u root -e "CREATE DATABASE 50_plusvoyagers CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
 php artisan migrate
 php artisan db:seed
 ```
@@ -45,20 +45,6 @@ composer run dev
 
 Open `http://localhost:3000`. Do not open port 8000 in a browser — it answers `/api` and nothing
 else, so every page there is a 404 by design.
-
-## Moving an existing MySQL database across
-
-If you have a database from before the PostgreSQL migration, point `LEGACY_DB_*` in `.env` at it,
-create and migrate the PostgreSQL one, then:
-
-```bash
-php artisan db:transfer-mysql --pretend    # what would move, and how much of it
-php artisan db:transfer-mysql
-```
-
-It copies every table, including any that no migration file describes any more, restores columns
-that drifted out of the migrations, recreates indexes and foreign keys, and resets every sequence
-from the data — so the first insert after the move does not collide with a copied row.
 
 ## Scripts
 

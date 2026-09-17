@@ -68,9 +68,8 @@ class WhoWeAreCardController extends Controller
                 if ($file = $request->file("cards.{$index}.image_file")) {
                     if ($file instanceof UploadedFile) {
                         /* The one it is replacing, once the save has held. */
-                        $discard[] = [$model->image_disk, $model->image_path];
+                        $discard[] = $model->image_path;
 
-                        $model->image_disk = $this->files->disk();
                         $model->image_path = $this->files->put($file, self::FOLDER);
                     }
                 }
@@ -85,13 +84,13 @@ class WhoWeAreCardController extends Controller
                     continue;
                 }
 
-                $discard[] = [$card->image_disk, $card->image_path];
+                $discard[] = $card->image_path;
                 $card->delete();
             }
         });
 
-        foreach ($discard as [$disk, $path]) {
-            $this->files->forget($disk, $path);
+        foreach ($discard as $path) {
+            $this->files->forget($path);
         }
 
         return response()->json([

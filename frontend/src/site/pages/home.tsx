@@ -15,6 +15,7 @@ import { fallbackBanners, fallbackHero } from '@/site/data/bands';
 import { fallbackFilms, fallbackToasts } from '@/site/data/feedback';
 import { fallbackGallery } from '@/site/data/gallery';
 import { fallbackPosts } from '@/site/data/journal';
+import type { TourCard } from '@/site/data/tour-content';
 import { fallbackWhoWeAre } from '@/site/data/who-we-are';
 import { fallbackWhyUs } from '@/site/data/why-us';
 import type { Band } from '@/site/types/band';
@@ -44,6 +45,8 @@ type HomePageProps = {
     gallery: GalleryPhoto[];
     /** The published articles the journal row shows. */
     articles: JournalCard[];
+    /** Published tours for the departure calendar. Empty until any are migrated. */
+    tourCards?: TourCard[];
 };
 
 /**
@@ -64,6 +67,7 @@ export default function HomePage({
     films,
     gallery,
     articles,
+    tourCards = [],
 }: HomePageProps) {
     const slides = hero.length > 0 ? hero : fallbackHero;
     const bands = banners.length > 0 ? banners : fallbackBanners;
@@ -83,7 +87,7 @@ export default function HomePage({
             <Hero slides={slides} />
             <WhoWeAre cards={cards} />
             <PressStrip />
-            <TripCalendar />
+            <TripCalendar tours={tourCards} />
             {bands[0] ? <ImageDivider band={bands[0]} /> : null}
             <WhyUs content={whyUs} />
             <Toasts items={quotes} />

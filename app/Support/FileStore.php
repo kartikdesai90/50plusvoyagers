@@ -36,13 +36,13 @@ class FileStore
      * public directory or from somewhere else entirely — part of the build, or
      * someone else's. Neither is ours to delete.
      */
-    public function forget(?string $disk, ?string $path): void
+    public function forget(?string $path): void
     {
         if (blank($path) || Str::startsWith($path, ['/', 'http://', 'https://'])) {
             return;
         }
 
-        Storage::disk($disk ?? $this->disk())->delete($path);
+        Storage::disk($this->disk())->delete($path);
     }
 
     /**
@@ -56,7 +56,7 @@ class FileStore
      * to optimise a host it was not configured for, which fails the page rather
      * than the picture.
      */
-    public function url(?string $disk, ?string $path): ?string
+    public function url(?string $path): ?string
     {
         if (blank($path)) {
             return null;
@@ -66,7 +66,7 @@ class FileStore
             return $path;
         }
 
-        $url = Storage::disk($disk ?? $this->disk())->url($path);
+        $url = Storage::disk($this->disk())->url($path);
 
         /* Keep only the path, whatever the disk decided the host was. */
         return parse_url($url, PHP_URL_PATH) ?: $url;

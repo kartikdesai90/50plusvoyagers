@@ -20,7 +20,6 @@ class WhoWeAreCard extends Model
     protected $fillable = [
         'title',
         'body',
-        'image_disk',
         'image_path',
         'is_active',
         'display_order',
@@ -52,7 +51,7 @@ class WhoWeAreCard extends Model
 
     public function imageUrl(): ?string
     {
-        return app(FileStore::class)->url($this->image_disk, $this->image_path);
+        return app(FileStore::class)->url($this->image_path);
     }
 
     /**

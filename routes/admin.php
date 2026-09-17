@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\FeedbackController;
 use App\Http\Controllers\Admin\GalleryItemController;
 use App\Http\Controllers\Admin\HeroBannerController;
 use App\Http\Controllers\Admin\SiteSettingController;
+use App\Http\Controllers\Admin\TourContentController;
 use App\Http\Controllers\Admin\TourController;
 use App\Http\Controllers\Admin\WhoWeAreCardController;
 use App\Http\Controllers\Admin\WhyUsSectionController;
@@ -122,5 +123,18 @@ Route::prefix('api/admin')->name('admin.api.')->group(function () {
         Route::get('tours/{tour}', [TourController::class, 'show'])->name('tours.show');
         Route::post('tours/{tour}', [TourController::class, 'update'])->name('tours.update');
         Route::delete('tours/{tour}', [TourController::class, 'destroy'])->name('tours.destroy');
+
+        /*
+         * A tour's repeating blocks — the day-by-day, the highlights, what the
+         * price covers and what it does not.
+         *
+         * Two endpoints, because the lists are read as a group and written as a
+         * group. Separate from the tour's own save because they are a separate
+         * sitting: correcting a tour code takes a moment, writing thirteen days
+         * does not — and because folding them in would let a screen that showed
+         * only some of the lists blank the ones it never displayed.
+         */
+        Route::get('tours/{tour}/content', [TourContentController::class, 'show'])->name('tours.content.show');
+        Route::post('tours/{tour}/content', [TourContentController::class, 'update'])->name('tours.content.update');
     });
 });

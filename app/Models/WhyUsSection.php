@@ -26,7 +26,6 @@ class WhyUsSection extends Model
         'points',
         'button_text',
         'button_url',
-        'image_disk',
         'image_path',
         'caption_heading',
         'caption_text',
@@ -71,7 +70,7 @@ class WhyUsSection extends Model
      */
     public function imageUrl(): ?string
     {
-        return app(FileStore::class)->url($this->image_disk, $this->image_path);
+        return app(FileStore::class)->url($this->image_path);
     }
 
     /**

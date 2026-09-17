@@ -12,8 +12,9 @@ use Illuminate\Support\Facades\Schema;
  * thing that differs is which band of the page renders it. Two tables would
  * mean two of every query, two forms and two chances to drift.
  *
- * The file itself is not stored here. `media_disk` plus `media_path` is, so
- * moving from local storage to object storage stays a configuration change.
+ * The file itself is not stored here. `media_path` is, and it resolves against
+ * the one media disk the application writes to, so moving from local storage to
+ * object storage stays a configuration change.
  */
 return new class extends Migration
 {
@@ -27,7 +28,6 @@ return new class extends Migration
             // image · video — what the band shows behind its words.
             $table->string('media_type', 20);
 
-            $table->string('media_disk', 40)->default('public');
             $table->string('media_path', 2048);
 
             $table->string('label', 120)->nullable();

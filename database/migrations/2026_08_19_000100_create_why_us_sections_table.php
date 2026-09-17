@@ -38,11 +38,10 @@ return new class extends Migration
             $table->string('button_url', 2048)->nullable();
 
             /* ---------------------------------------------------- picture */
-            // Split the way every other module splits it: the disk it lives on
-            // and the path on that disk, so moving to object storage stays a
-            // configuration change. A path starting with a slash is a file
-            // shipped with the build and needs no upload to keep working.
-            $table->string('image_disk', 40)->nullable();
+            // Stored the way every other module stores it: the path alone,
+            // resolved against the one media disk, so moving to object storage
+            // stays a configuration change. A path starting with a slash is a
+            // file shipped with the build and needs no upload to keep working.
             $table->string('image_path', 2048)->nullable();
 
             /* ---------------------------------------------------- caption */

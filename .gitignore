@@ -28,3 +28,6 @@ Thumbs.db
 *.zip
 *.bak
 *.bak-*
+
+# Legacy tour HTML, downloaded for the content migration.
+/storage/legacy/

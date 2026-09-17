@@ -34,7 +34,6 @@ class BlogPostSeeder extends Seeder
                     'content' => implode("\n\n", $post['content']),
                     'published_at' => Carbon::createFromFormat('j M Y', $post['published_at'])
                         ->startOfDay(),
-                    'image_disk' => 'public',
                     'status' => PostStatus::Published,
                     'display_order' => $order,
                 ],

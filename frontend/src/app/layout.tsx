@@ -70,7 +70,19 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
     return (
-        <html lang="en" className={`${sans.variable} ${serif.variable}`}>
+        <html
+            lang="en"
+            /*
+             * Tells the router the smooth scrolling in the stylesheet is
+             * deliberate. Without it Next warns on every navigation, because it
+             * cannot tell an intended `scroll-behavior: smooth` from one
+             * inherited by accident — and it disables its own instant scroll
+             * restoration to be safe, which makes a route change animate to the
+             * top rather than arrive there.
+             */
+            data-scroll-behavior="smooth"
+            className={`${sans.variable} ${serif.variable}`}
+        >
             <head>
                 {/*
                  * Cloak the first paint so the intro timeline owns it. Added

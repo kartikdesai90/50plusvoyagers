@@ -120,8 +120,7 @@ class HomepageFeedbackTest extends TestCase
         $this->content()
             ->assertJsonPath('films.0.video_source', 'https://youtu.be/abc123')
             ->assertJsonMissingPath('films.0.video_url')
-            ->assertJsonMissingPath('films.0.video_path')
-            ->assertJsonMissingPath('films.0.video_disk');
+            ->assertJsonMissingPath('films.0.video_path');
     }
 
     /** Which card renders taller is a layout fact, so it does travel. */
@@ -153,7 +152,6 @@ class HomepageFeedbackTest extends TestCase
             ->assertJsonMissingPath('toasts.0.display_order')
             ->assertJsonMissingPath('toasts.0.tour_id')
             ->assertJsonMissingPath('toasts.0.photo_path')
-            ->assertJsonMissingPath('toasts.0.photo_disk')
             ->assertJsonMissingPath('toasts.0.created_at');
     }
 

@@ -1,11 +1,14 @@
 'use client';
 
-import { ArrowRight } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { Container, Eyebrow, RuleLink, Section, SectionHeading } from '@/site/components/section';
-import { SiteImage } from '@/site/components/site-image';
-import { trips, type Trip } from '@/site/data/home';
+import { TourCard } from '@/site/components/tour-card';
+import { trips } from '@/site/data/home';
+import type { Tour } from '@/site/data/tours';
+/* The wire shape, aliased: `TourCard` above is the component that draws one. */
+import type { TourCard as TourCardData } from '@/site/data/tour-content';
+import { paths } from '@/routes/paths';
 import { cn } from '@/shared/lib/utils';
 
 /**
@@ -16,7 +19,7 @@ import { cn } from '@/shared/lib/utils';
  * A departure's month is a fact about the departure, not about where the
  * browser is sitting.
  */
-const monthKey = (trip: Trip) => trip.date.slice(0, 7);
+const monthKey = (tour: { month: string }) => tour.month;
 
 const MONTH_NAMES = [
     'JAN',
@@ -61,22 +64,91 @@ function departureLabel(date: string): string {
  * Sorted by date throughout, so both the row and the cards under it run
  * forwards in time however the data happens to be ordered.
  */
-export function TripCalendar() {
-    const departures = useMemo(
-        () => [...trips].sort((a, b) => a.date.localeCompare(b.date)),
-        [],
-    );
+export function TripCalendar({ tours = [] }: { tours?: TourCardData[] }) {
+    /*
+     * Real tours where there are any, the design's own departures otherwise.
+     *
+     * Both are resolved into the one shape {@see TourCard} draws, so a
+     * departure looks the same here as it does on the listing. They were two
+     * card implementations until now, which is how this band came to show a
+     * "Deluxe" tag where the listing showed a region.
+     *
+     * The fallback is a fallback, not a peer: a mockup departure has no
+     * address, so `slug` is empty and its card renders as a card rather than as
+     * a link to a page that does not exist.
+     */
+    const departures = useMemo<Tour[]>(() => {
+        /*
+         * Only departures with a date. The calendar is filed by month, so a
+         * tour the CRM has no departure for has no shelf to sit on — it is
+         * still reachable from the listing and from search, just not from a
+         * month tab that would have to invent one for it.
+         */
+        const real: Tour[] = tours
+            .filter((tour) => Boolean(tour.starts_on))
+            /*
+             * Sorted on the ISO date, before it becomes a printed one.
+             * `departureLabel` returns "14 April 2027", and comparing those as
+             * text files April ahead of November — the row of month tabs would
+             * run in alphabetical order rather than forwards in time.
+             */
+            .sort((a, b) => String(a.starts_on).localeCompare(String(b.starts_on)))
+            .map((tour) => {
+                const date = String(tour.starts_on).slice(0, 10);
 
-    const months = useMemo(
-        () => [...new Set(departures.map(monthKey))],
-        [departures],
-    );
+                return {
+                    slug: tour.slug,
+                    title: tour.title,
+                    region: tour.ribbon_text ?? tour.region ?? '',
+                    month: date.slice(0, 7),
+                    departs: departureLabel(date),
+                    duration: tour.nights ? `${tour.nights} nights` : '',
+                    price: tour.price ? `₹${tour.price.toLocaleString('en-IN')}` : 'On request',
+                    /*
+                     * Nothing is borrowed from another trip. This band used to
+                     * lend an unphotographed tour a picture from the design's
+                     * library, which kept the row looking finished at the cost
+                     * of showing a place the tour does not visit — Japan wore a
+                     * photograph of Bhutan. The card has an empty state for
+                     * exactly this, and an honest gap is also the only thing
+                     * that tells anyone a photograph is still needed.
+                     */
+                    image: tour.image_url ?? '',
+                    places: [],
+                    summary: '',
+                    highlights: [],
+                };
+            });
+
+        if (real.length > 0) {
+            return real;
+        }
+
+        return [...trips]
+            .sort((a, b) => a.date.localeCompare(b.date))
+            .map((trip) => ({
+                /* No page to open: these describe a trip without being one. */
+                slug: '',
+                title: trip.title,
+                region: trip.tag,
+                month: trip.date.slice(0, 7),
+                departs: departureLabel(trip.date),
+                duration: trip.nights,
+                price: trip.price,
+                image: trip.src,
+                places: [],
+                summary: '',
+                highlights: [],
+            }));
+    }, [tours]);
+
+    const months = useMemo(() => [...new Set(departures.map(monthKey))], [departures]);
 
     /* The soonest month, which is the one a visitor is most likely to want. */
     const [active, setActive] = useState(() => months[0] ?? '');
 
     const shown = useMemo(
-        () => departures.filter((trip) => monthKey(trip) === active),
+        () => departures.filter((tour) => monthKey(tour) === active),
         [departures, active],
     );
 
@@ -133,50 +205,43 @@ export function TripCalendar() {
 
                 <div
                     data-voy-group
-                    className="grid grid-cols-[repeat(auto-fit,minmax(min(290px,100%),1fr))] gap-[clamp(18px,2vw,28px)]"
+                    /*
+                     * Capped and centred, for the months with one departure in
+                     * them.
+                     *
+                     * `auto-fit` hands the width of the tracks nothing lands in
+                     * to the tracks that survive — right for a full row, and
+                     * wrong here more often than on the listing, because this
+                     * section opens already filtered to the soonest month. A
+                     * month with a single trip in it rendered that trip as a
+                     * full-width panorama on the homepage, on load.
+                     *
+                     * `min(290px,100%)` stays as the floor: it is what keeps the
+                     * 290px minimum from overflowing a viewport narrower than
+                     * 290px. Only the ceiling changes.
+                     */
+                    /* 340px, not 380: three tracks and their gaps have to fit
+                       the 1092px a desktop row actually has once the gutter is
+                       taken off, or `auto-fit` drops the row to two cards. The
+                       listing grid is capped the same, so a departure looks the
+                       same in both places. */
+                    className="grid grid-cols-[repeat(auto-fit,minmax(min(290px,100%),340px))] justify-center gap-[clamp(18px,2vw,28px)]"
                 >
-                    {shown.map((trip) => (
-                        <article key={`${trip.title}-${trip.date}`}>
-                            <a
-                                href="#trips"
-                                className="group relative block overflow-hidden rounded-[10px]"
-                            >
-                                <div className="relative h-[clamp(340px,34vw,420px)] w-full">
-                                    <SiteImage
-                                        src={trip.src}
-                                        alt={trip.title}
-                                        /* Three across on desktop, one on a phone. */
-                                        sizes="(max-width: 700px) 100vw, (max-width: 1180px) 50vw, 380px"
-                                        className="object-cover"
-                                    />
-                                </div>
-                                <div className="voy-overlay bg-linear-to-t from-[rgb(16_15_12/0.86)] via-[rgb(16_15_12/0.3)] via-48% to-transparent to-80% p-6">
-                                    <span className="mb-3.5 self-start rounded-full border border-white/55 px-[11px] py-[5px] text-[10.5px] font-bold tracking-[0.16em] uppercase">
-                                        {trip.tag}
-                                    </span>
-                                    <div className="mb-3.5 text-[15px] text-white/85">
-                                        {departureLabel(trip.date)} · {trip.nights}
-                                    </div>
-                                    <span className="inline-flex items-center gap-2 border-t border-white/30 pt-3.5 text-sm font-bold tracking-[0.03em]">
-                                        View trip
-                                        <ArrowRight className="size-[15px]" aria-hidden="true" />
-                                    </span>
-                                </div>
-                            </a>
-                            <div className="mt-4 flex items-baseline justify-between gap-3">
-                                <h3 className="font-serif text-[21px] font-medium tracking-[-0.01em] text-ink">
-                                    {trip.title}
-                                </h3>
-                                <div className="text-[15px] font-bold whitespace-nowrap text-brand">
-                                    {trip.price}
-                                </div>
-                            </div>
-                        </article>
+                    {/*
+                     * The listing's card, not one of this band's own.
+                     *
+                     * It handles the address (a mockup departure has none and
+                     * renders as a card rather than a link), the missing
+                     * photograph, and the facts underneath — so a departure
+                     * reads identically here and on the group tours page.
+                     */}
+                    {shown.map((tour) => (
+                        <TourCard key={`${tour.title}-${tour.month}`} tour={tour} />
                     ))}
                 </div>
 
                 <div className="mt-[clamp(40px,5vw,60px)] text-center">
-                    <RuleLink href="#trips" className="text-[13px]">
+                    <RuleLink href={paths.groupTours} className="text-[13px]">
                         See all departures
                     </RuleLink>
                 </div>

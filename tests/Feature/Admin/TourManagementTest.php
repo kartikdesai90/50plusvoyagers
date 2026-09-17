@@ -6,6 +6,8 @@ use App\Models\Tour;
 use App\Models\User;
 use App\Support\TourChoices;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
@@ -139,8 +141,8 @@ class TourManagementTest extends TestCase
     }
 
     /**
-     * PostgreSQL sorts nulls first on an ascending order, which would float
-     * every undated tour above the dated ones an editor is looking for.
+     * MySQL sorts nulls first on an ascending order, which would float every
+     * undated tour above the dated ones an editor is looking for.
      */
     public function test_an_undated_tour_sorts_last_rather_than_first(): void
     {
@@ -156,9 +158,8 @@ class TourManagementTest extends TestCase
     }
 
     /**
-     * PostgreSQL's LIKE is case sensitive where MySQL's, under a `_ci`
-     * collation, was not. Searching for a name in the wrong case must still
-     * find it.
+     * Searching for a name in the wrong case must still find it, rather than
+     * that depending on how the column happens to be collated.
      */
     public function test_search_is_case_insensitive_and_covers_the_code(): void
     {
@@ -177,6 +178,103 @@ class TourManagementTest extends TestCase
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.tour_name', 'Japan November');
+    }
+
+    /**
+     * The tour's own main picture.
+     *
+     * It had a column and nothing else: no rule, no upload handling and no way
+     * through the panel to set one. The cover was inferred from whichever
+     * gallery row carried the flag, which left a tour unable to lead with a
+     * photograph that was not also in its carousel.
+     */
+    public function test_an_editor_gives_a_tour_a_main_image(): void
+    {
+        Storage::fake('public');
+
+        $this->actingAs($this->admin())
+            ->post('/api/admin/tours', [
+                'tour_code' => 'Coorg30052026',
+                'tour_name' => 'Coorg 30 May - 2 June 2026',
+                'image_file' => UploadedFile::fake()->image('coorg.jpg'),
+            ])
+            ->assertCreated();
+
+        $tour = Tour::firstWhere('tour_code', 'Coorg30052026');
+
+        $this->assertNotNull($tour->image_path, 'The upload should have been stored.');
+        Storage::disk('public')->assertExists($tour->image_path);
+    }
+
+    /** Replacing it removes the file it replaced, rather than orphaning it. */
+    public function test_replacing_the_main_image_discards_the_old_file(): void
+    {
+        Storage::fake('public');
+
+        $admin = $this->admin();
+        $tour = Tour::create(['tour_code' => 'Bali02092026', 'tour_name' => 'Bali']);
+
+        $this->actingAs($admin)->post('/api/admin/tours/'.$tour->id, [
+            'tour_code' => 'Bali02092026',
+            'tour_name' => 'Bali',
+            'image_file' => UploadedFile::fake()->image('first.jpg'),
+        ])->assertOk();
+
+        $first = $tour->refresh()->image_path;
+
+        $this->actingAs($admin)->post('/api/admin/tours/'.$tour->id, [
+            'tour_code' => 'Bali02092026',
+            'tour_name' => 'Bali',
+            'image_file' => UploadedFile::fake()->image('second.jpg'),
+        ])->assertOk();
+
+        $second = $tour->refresh()->image_path;
+
+        $this->assertNotSame($first, $second);
+        Storage::disk('public')->assertMissing($first);
+        Storage::disk('public')->assertExists($second);
+    }
+
+    /** A picture is a picture. Anything else is refused with a message. */
+    public function test_the_main_image_must_be_an_image(): void
+    {
+        Storage::fake('public');
+
+        /*
+         * `Accept: application/json` rather than a plain post: a multipart
+         * request that fails validation is redirected back to the form by
+         * default, and the panel reads the 422 body to put the message on the
+         * field. Asserting the redirect would test the wrong contract.
+         */
+        $this->actingAs($this->admin())
+            ->post('/api/admin/tours', [
+                'tour_code' => 'Hampi070926',
+                'tour_name' => 'Hampi',
+                'image_file' => UploadedFile::fake()->create('itinerary.pdf', 40, 'application/pdf'),
+            ], ['Accept' => 'application/json'])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('image_file');
+    }
+
+    /** Removing the tour takes its main image with it. */
+    public function test_deleting_a_tour_removes_its_main_image(): void
+    {
+        Storage::fake('public');
+
+        $admin = $this->admin();
+        $tour = Tour::create(['tour_code' => 'Jog07072026', 'tour_name' => 'Jog']);
+
+        $this->actingAs($admin)->post('/api/admin/tours/'.$tour->id, [
+            'tour_code' => 'Jog07072026',
+            'tour_name' => 'Jog',
+            'image_file' => UploadedFile::fake()->image('jog.jpg'),
+        ])->assertOk();
+
+        $path = $tour->refresh()->image_path;
+
+        $this->actingAs($admin)->deleteJson('/api/admin/tours/'.$tour->id)->assertNoContent();
+
+        Storage::disk('public')->assertMissing($path);
     }
 
     public function test_an_editor_deletes_a_tour(): void

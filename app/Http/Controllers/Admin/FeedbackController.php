@@ -51,9 +51,8 @@ class FeedbackController extends Controller
         $direction = $request->string('direction')->toString() === 'desc' ? 'desc' : 'asc';
 
         $feedback = Feedback::query()
-            // Case-insensitive by request, not by luck: PostgreSQL's LIKE is
-            // case sensitive where MySQL's `_ci` collation was not, and
-            // `whereLike` renders as ILIKE there and LIKE elsewhere.
+            // Case-insensitive by request, not by luck: `whereLike` asks for
+            // it outright rather than leaning on the column's collation.
             ->when($search !== '', fn (Builder $query) => $query->where(
                 fn (Builder $query) => $query
                     ->whereLike('customer_name', "%{$search}%")
@@ -126,9 +125,9 @@ class FeedbackController extends Controller
     public function update(UpdateFeedbackRequest $request, Feedback $feedback): JsonResponse
     {
         $previous = [
-            'video' => [$feedback->video_disk, $feedback->video_path],
-            'thumbnail' => [$feedback->thumbnail_disk, $feedback->thumbnail_path],
-            'photo' => [$feedback->photo_disk, $feedback->photo_path],
+            'video' => $feedback->video_path,
+            'thumbnail' => $feedback->thumbnail_path,
+            'photo' => $feedback->photo_path,
         ];
 
         $feedback->fill($request->feedbackAttributes());
@@ -136,14 +135,14 @@ class FeedbackController extends Controller
 
         // A written quote keeps no film, so anything it was carrying goes.
         if ($feedback->type === FeedbackType::Text && filled($feedback->video_path)) {
-            $feedback->forceFill(['video_disk' => null, 'video_path' => null]);
+            $feedback->forceFill(['video_path' => null]);
             $replaced[] = 'video';
         }
 
         $feedback->save();
 
         foreach (array_unique($replaced) as $slot) {
-            $this->files->forget($previous[$slot][0], $previous[$slot][1]);
+            $this->files->forget($previous[$slot]);
         }
 
         return response()->json(['data' => new FeedbackResource($feedback->refresh())]);
@@ -152,15 +151,15 @@ class FeedbackController extends Controller
     public function destroy(Feedback $feedback): JsonResponse
     {
         $files = [
-            [$feedback->video_disk, $feedback->video_path],
-            [$feedback->thumbnail_disk, $feedback->thumbnail_path],
-            [$feedback->photo_disk, $feedback->photo_path],
+            $feedback->video_path,
+            $feedback->thumbnail_path,
+            $feedback->photo_path,
         ];
 
         $feedback->delete();
 
-        foreach ($files as [$disk, $path]) {
-            $this->files->forget($disk, $path);
+        foreach ($files as $path) {
+            $this->files->forget($path);
         }
 
         return response()->json(null, Response::HTTP_NO_CONTENT);
@@ -177,7 +176,6 @@ class FeedbackController extends Controller
 
         if ($request->hasFile('video_file')) {
             $feedback->forceFill([
-                'video_disk' => $this->files->disk(),
                 'video_path' => $this->files->put($request->file('video_file'), self::FOLDER),
             ]);
             $replaced[] = 'video';
@@ -185,7 +183,6 @@ class FeedbackController extends Controller
 
         if ($request->hasFile('thumbnail_file')) {
             $feedback->forceFill([
-                'thumbnail_disk' => $this->files->disk(),
                 'thumbnail_path' => $this->files->put($request->file('thumbnail_file'), self::FOLDER),
             ]);
             $replaced[] = 'thumbnail';
@@ -193,7 +190,6 @@ class FeedbackController extends Controller
 
         if ($request->hasFile('photo_file')) {
             $feedback->forceFill([
-                'photo_disk' => $this->files->disk(),
                 'photo_path' => $this->files->put($request->file('photo_file'), self::FOLDER),
             ]);
             $replaced[] = 'photo';

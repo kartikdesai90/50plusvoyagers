@@ -7,6 +7,14 @@
 **Supersedes:** Section 3 of [website-revamp-plan.md](./website-revamp-plan.md) v1.0 (17 Aug 2026)
 **Status:** For client confirmation — **no schema changes made.** Structure proposed for sign-off first.
 
+> **Resolved 2026-09-02 — the engine question in §11.1 is now settled: MySQL.** The application has
+> been migrated from PostgreSQL to MySQL, which is option **A** in the §11.1 table — the reading the
+> dump itself always supported. The rest of this document is kept as written, so the discussion that
+> led here is still legible; where it says the application is built on PostgreSQL, or gives column
+> types "in PostgreSQL form", read the MySQL equivalents column beside them. The §12 client decision
+> recorded as "PostgreSQL, single database" now stands as **MySQL, single database** — the single
+> database part is unchanged.
+
 > **v1.2 — one database, and three blocking discrepancies.** You have asked that the website's new
 > tables live **inside the existing CRM database**, reusing existing tables where possible, with no
 > separate database and nothing broken. Section 11 is new and covers exactly that.

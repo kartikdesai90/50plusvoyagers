@@ -147,8 +147,7 @@ class HomepageBandsTest extends TestCase
         $this->content()
             ->assertJsonMissingPath('hero.0.is_active')
             ->assertJsonMissingPath('hero.0.display_order')
-            ->assertJsonMissingPath('hero.0.media_path')
-            ->assertJsonMissingPath('hero.0.media_disk');
+            ->assertJsonMissingPath('hero.0.media_path');
     }
 
     /** A site with nothing stored still has a homepage. */

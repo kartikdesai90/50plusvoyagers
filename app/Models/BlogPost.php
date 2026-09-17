@@ -22,7 +22,6 @@ class BlogPost extends Model
         'slug',
         'excerpt',
         'content',
-        'image_disk',
         'image_path',
         'category',
         'tags',
@@ -101,7 +100,7 @@ class BlogPost extends Model
     /** Where a browser fetches the featured picture from. */
     public function imageUrl(): ?string
     {
-        return app(FileStore::class)->url($this->image_disk, $this->image_path);
+        return app(FileStore::class)->url($this->image_path);
     }
 
     /**

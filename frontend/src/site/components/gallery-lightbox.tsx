@@ -2,6 +2,7 @@
 
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useCallback, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
 import type { GalleryPhoto } from '@/site/types/gallery';
 
@@ -94,12 +95,32 @@ export function GalleryLightbox({ photos, index, onClose, onMove }: GalleryLight
         return () => document.removeEventListener('keydown', onKeyDown);
     }, [onClose, step]);
 
-    if (!photo) return null;
+    /*
+     * `document` does not exist while the server renders, and a portal needs a
+     * real node to render into. Checked directly rather than through a mounted
+     * flag: this layer only ever appears in response to a click, so it is never
+     * part of the server's output and has no hydration pass to match.
+     */
+    if (!photo || typeof document === 'undefined') return null;
 
     /* One photograph is not a set to step through, so it gets no arrows. */
     const many = photos.length > 1;
 
-    return (
+    /*
+     * Rendered into `body`, not where it was written.
+     *
+     * `position: fixed` is fixed to the viewport only while no ancestor has a
+     * transform, filter or containing block of its own — and the homepage
+     * animates every section's children with GSAP, which leaves a `transform`
+     * on them for the length of the reveal. Inside one of those, the layer was
+     * pinned to the section instead of the screen: the backdrop stopped at the
+     * band's edges and the page showed through above and below it.
+     *
+     * A portal sidesteps the whole question rather than fighting each ancestor
+     * that might introduce one, and it is what makes this behave identically on
+     * the homepage, the tour page and the gallery.
+     */
+    return createPortal(
         <div
             role="dialog"
             aria-modal="true"
@@ -138,8 +159,14 @@ export function GalleryLightbox({ photos, index, onClose, onMove }: GalleryLight
 
             {/* Stops a click on the picture or its caption reaching the
                 backdrop handler above. */}
+            {/*
+             * No width cap. The 1100px one stopped a landscape photograph well
+             * short of a wide screen, on a layer whose whole purpose is to show
+             * the picture as large as it will go — the height bound already
+             * keeps a portrait from running off the top and bottom.
+             */}
             <figure
-                className="flex w-full max-w-[1100px] flex-col items-center gap-5"
+                className="voy-lightbox-figure flex w-full flex-col items-center justify-center gap-5"
                 onClick={(event) => event.stopPropagation()}
             >
                 {/*
@@ -197,6 +224,7 @@ export function GalleryLightbox({ photos, index, onClose, onMove }: GalleryLight
                     <ChevronRight className="size-5" strokeWidth={1.8} aria-hidden="true" />
                 </button>
             ) : null}
-        </div>
+        </div>,
+        document.body,
     );
 }

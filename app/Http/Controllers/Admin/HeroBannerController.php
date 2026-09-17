@@ -66,7 +66,6 @@ class HeroBannerController extends Controller
         $band = new HeroBanner($request->bandAttributes());
 
         $file = $request->file('media_file');
-        $band->media_disk = $this->disk();
         $band->media_path = $this->storeFile($file);
 
         $band->save();
@@ -87,20 +86,18 @@ class HeroBannerController extends Controller
     public function update(UpdateHeroBannerRequest $request, HeroBanner $heroBanner): JsonResponse
     {
         $previousPath = $heroBanner->media_path;
-        $previousDisk = $heroBanner->media_disk;
         $replacing = $request->hasFile('media_file');
 
         $heroBanner->fill($request->bandAttributes());
 
         if ($replacing) {
-            $heroBanner->media_disk = $this->disk();
             $heroBanner->media_path = $this->storeFile($request->file('media_file'));
         }
 
         DB::transaction(fn () => $heroBanner->save());
 
         if ($replacing && $heroBanner->hasUploadedFile()) {
-            $this->forgetFile($previousDisk, $previousPath);
+            $this->forgetFile($previousPath);
         }
 
         return response()->json(['data' => new HeroBannerResource($heroBanner->refresh())]);
@@ -108,14 +105,13 @@ class HeroBannerController extends Controller
 
     public function destroy(HeroBanner $heroBanner): JsonResponse
     {
-        $disk = $heroBanner->media_disk;
         $path = $heroBanner->media_path;
         $uploaded = $heroBanner->hasUploadedFile();
 
         $heroBanner->delete();
 
         if ($uploaded) {
-            $this->forgetFile($disk, $path);
+            $this->forgetFile($path);
         }
 
         return response()->json(null, Response::HTTP_NO_CONTENT);
@@ -126,13 +122,8 @@ class HeroBannerController extends Controller
         return $this->files->put($file, self::FOLDER);
     }
 
-    private function forgetFile(string $disk, string $path): void
+    private function forgetFile(string $path): void
     {
-        $this->files->forget($disk, $path);
-    }
-
-    private function disk(): string
-    {
-        return $this->files->disk();
+        $this->files->forget($path);
     }
 }

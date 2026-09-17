@@ -259,7 +259,6 @@ class WhyUsSectionTest extends TestCase
         $why = $this->getJson('/api/site/home')->assertOk()->json('why');
 
         $this->assertArrayNotHasKey('updated_at', $why);
-        $this->assertArrayNotHasKey('image_disk', $why);
         $this->assertArrayNotHasKey('image_path', $why);
     }
 }

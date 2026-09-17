@@ -9,7 +9,7 @@ import { Field } from '@/admin/components/form-section';
 import { IconAction } from '@/admin/components/icon-action';
 import { PageHeader } from '@/admin/components/page-header';
 import { SelectField } from '@/admin/components/select-field';
-import { formatEndDate } from '@/admin/features/tours/defaults';
+import { formatEndDate, pageProgress } from '@/admin/features/tours/defaults';
 import { deleteTour, listTours } from '@/admin/features/tours/tours-api';
 import type { Tour } from '@/admin/features/tours/types';
 import { paths, tourEditPath } from '@/routes/paths';
@@ -180,6 +180,7 @@ export default function AdminToursIndexPage() {
                                     <tr className="border-b border-border bg-muted/40 text-left">
                                         <Th>Tour</Th>
                                         <Th className="w-56">Code</Th>
+                                        <Th className="w-28">Page</Th>
                                         <Th className="w-36">Ends</Th>
                                         <Th className="w-28 text-right">Actions</Th>
                                     </tr>
@@ -202,6 +203,9 @@ export default function AdminToursIndexPage() {
                                                 <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
                                                     {tour.tour_code}
                                                 </code>
+                                            </Td>
+                                            <Td>
+                                                <PageState tour={tour} />
                                             </Td>
                                             <Td className="text-muted-foreground tabular-nums">
                                                 {formatEndDate(tour.end_date)}
@@ -303,6 +307,43 @@ function EmptyState({ isFiltered, onClear }: { isFiltered: boolean; onClear: () 
                     </Link>
                 </Button>
             )}
+        </div>
+    );
+}
+
+/**
+ * Whether this tour has a written page yet.
+ *
+ * The question an editor actually has when they open this list: with
+ * thirty-two pages to migrate, which are done? A published tour with no
+ * content is the case worth catching — it renders, but it renders empty.
+ */
+function PageState({ tour }: { tour: Tour }) {
+    const { written, summary } = pageProgress(tour);
+    const live = tour.status === 'published' && Boolean(tour.slug);
+
+    return (
+        <div className="flex flex-col gap-1">
+            <span
+                className={
+                    live
+                        ? 'inline-flex w-fit items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-xs font-medium text-brand'
+                        : 'inline-flex w-fit items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground'
+                }
+            >
+                <span
+                    className={`size-1.5 rounded-full ${live ? 'bg-brand' : 'bg-muted-foreground/60'}`}
+                    aria-hidden="true"
+                />
+                {live ? 'Live' : 'Draft'}
+            </span>
+            {summary ? (
+                <span
+                    className={`text-[11px] ${written ? 'text-muted-foreground' : 'text-amber-600'}`}
+                >
+                    {summary}
+                </span>
+            ) : null}
         </div>
     );
 }

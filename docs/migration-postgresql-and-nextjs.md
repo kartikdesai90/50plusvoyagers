@@ -1,5 +1,11 @@
 # Migration: MySQL → PostgreSQL, React/Inertia → Next.js
 
+> **Superseded in part.** On 2026-09-02 the database moved back to MySQL. The
+> Next.js half of this note still describes the front end as it is; the
+> PostgreSQL half is a record of what was done on 2026-08-18, not of the
+> database in use now. `db:transfer-mysql` and the `mysql_legacy` connection it
+> used were removed with that change.
+
 **Date:** 2026-08-18
 
 Two technology changes, made together. Nothing about what the application does

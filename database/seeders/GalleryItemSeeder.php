@@ -42,25 +42,21 @@ class GalleryItemSeeder extends Seeder
             [
                 'title' => 'Pangong Lake, Ladakh',
                 'caption' => 'Ancient blue water, thin mountain air, and a group that laughed through every switchback.',
-                'image_disk' => 'public',
                 'image_path' => '/images/home/pangong-lake.webp',
             ],
             [
                 'title' => 'Paro Valley, Bhutan',
                 'caption' => 'We climbed slowly to Tiger’s Nest and toasted at the top. No one left behind.',
-                'image_disk' => 'public',
                 'image_path' => '/images/home/paro-valley.webp',
             ],
             [
                 'title' => 'Kerala Backwaters',
                 'caption' => 'Houseboats, coconut breeze, and the kind of quiet you feel in your chest.',
-                'image_disk' => 'public',
                 'image_path' => '/images/home/kerala-backwaters.webp',
             ],
             [
                 'title' => 'Cappadocia, Türkiye',
                 'caption' => 'Up before dawn for a sky full of balloons. Worth every early morning.',
-                'image_disk' => 'public',
                 'image_path' => '/images/home/cappadocia.webp',
             ],
         ];

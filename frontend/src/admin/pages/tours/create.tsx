@@ -6,9 +6,9 @@ import { useNavigate } from '@/shared/router';
 import { FormPage } from '@/admin/components/form-page';
 import { blankTour } from '@/admin/features/tours/defaults';
 import { TourForm } from '@/admin/features/tours/tour-form';
-import { createTour } from '@/admin/features/tours/tours-api';
+import { createTour, type TourFiles } from '@/admin/features/tours/tours-api';
 import type { TourInput } from '@/admin/features/tours/types';
-import { paths } from '@/routes/paths';
+import { paths, tourEditPath } from '@/routes/paths';
 import { normalizeError } from '@/shared/lib/api-error';
 
 /**
@@ -26,16 +26,31 @@ export default function AdminTourCreatePage() {
     const [error, setError] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-    const save = async (input: TourInput) => {
+    const save = async (input: TourInput, files: TourFiles) => {
         setSaving(true);
         setError(null);
         setFieldErrors({});
 
         try {
-            const saved = await createTour(input);
+            const saved = await createTour(input, files);
 
-            void navigate(paths.admin.tours, {
-                state: { notice: `“${saved.tour_name}” has been added.` },
+            /*
+             * On to the new tour, not back to the list.
+             *
+             * The other modules return to their list because a record is
+             * finished when it is saved — a photograph, a quote, a banner is
+             * one form and done. A tour is not: what has just been created is
+             * the CRM's five fields and a heading, and the trip itself — the
+             * day-by-day, the highlights, what the price covers — is written on
+             * the edit screen's Content tab, which does not exist until the
+             * tour has an id.
+             *
+             * So the list was a dead end that every editor had to walk back
+             * from. This lands them where the work continues, and says which
+             * tour they are now looking at.
+             */
+            void navigate(tourEditPath(saved.id), {
+                state: { notice: `“${saved.tour_name}” has been added. Now write its page.` },
             });
         } catch (problem) {
             const normalized = normalizeError(problem);
@@ -58,7 +73,7 @@ export default function AdminTourCreatePage() {
                 isSaving={isSaving}
                 fieldErrors={fieldErrors}
                 submitLabel="Add tour"
-                onSubmit={(input) => void save(input)}
+                onSubmit={(input, files) => void save(input, files)}
             />
         </FormPage>
     );

@@ -36,18 +36,14 @@ class SiteSetting extends Model
         'linkedin_url',
         'twitter_url',
         'other_socials',
-
-        'logo_disk',
         'logo_path',
         'logo_alt',
-        'favicon_disk',
         'favicon_path',
         'website_url',
 
         'meta_title',
         'meta_description',
         'meta_keywords',
-        'og_image_disk',
         'og_image_path',
 
         'copyright_text',
@@ -90,17 +86,17 @@ class SiteSetting extends Model
 
     public function logoUrl(): ?string
     {
-        return app(FileStore::class)->url($this->logo_disk, $this->logo_path);
+        return app(FileStore::class)->url($this->logo_path);
     }
 
     public function faviconUrl(): ?string
     {
-        return app(FileStore::class)->url($this->favicon_disk, $this->favicon_path);
+        return app(FileStore::class)->url($this->favicon_path);
     }
 
     public function ogImageUrl(): ?string
     {
-        return app(FileStore::class)->url($this->og_image_disk, $this->og_image_path);
+        return app(FileStore::class)->url($this->og_image_path);
     }
 
     /* ------------------------------------------------------------- links */

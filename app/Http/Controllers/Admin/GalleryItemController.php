@@ -43,9 +43,8 @@ class GalleryItemController extends Controller
         $direction = $request->string('direction')->toString() === 'desc' ? 'desc' : 'asc';
 
         $items = GalleryItem::query()
-            // Case-insensitive by request, not by luck: PostgreSQL's LIKE is
-            // case sensitive where MySQL's `_ci` collation was not, and
-            // `whereLike` renders as ILIKE there and LIKE elsewhere.
+            // Case-insensitive by request, not by luck: `whereLike` asks for
+            // it outright rather than leaning on the column's collation.
             ->when($search !== '', fn (Builder $query) => $query->where(
                 fn (Builder $query) => $query
                     ->whereLike('title', "%{$search}%")
@@ -89,7 +88,6 @@ class GalleryItemController extends Controller
     {
         $item = new GalleryItem($request->galleryAttributes());
 
-        $item->image_disk = $this->files->disk();
         $item->image_path = $this->files->put($request->file('image_file'), self::FOLDER);
         $item->save();
 
@@ -108,20 +106,19 @@ class GalleryItemController extends Controller
      */
     public function update(UpdateGalleryItemRequest $request, GalleryItem $gallery): JsonResponse
     {
-        $previous = [$gallery->image_disk, $gallery->image_path];
+        $previous = $gallery->image_path;
         $replacing = $request->hasFile('image_file');
 
         $gallery->fill($request->galleryAttributes());
 
         if ($replacing) {
-            $gallery->image_disk = $this->files->disk();
             $gallery->image_path = $this->files->put($request->file('image_file'), self::FOLDER);
         }
 
         $gallery->save();
 
         if ($replacing) {
-            $this->files->forget($previous[0], $previous[1]);
+            $this->files->forget($previous);
         }
 
         return response()->json(['data' => new GalleryItemResource($gallery->refresh())]);
@@ -129,11 +126,10 @@ class GalleryItemController extends Controller
 
     public function destroy(GalleryItem $gallery): JsonResponse
     {
-        $disk = $gallery->image_disk;
         $path = $gallery->image_path;
 
         $gallery->delete();
-        $this->files->forget($disk, $path);
+        $this->files->forget($path);
 
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }

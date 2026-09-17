@@ -46,12 +46,10 @@ class BlogPostController extends Controller
         $posts = BlogPost::query()
             ->with('author')
             /*
-             * `whereLike` rather than `where(..., 'like', ...)`: PostgreSQL's
-             * LIKE is case sensitive where MySQL's, under a `_ci` collation,
-             * was not. Searching for "Nagaland" and not finding "nagaland"
-             * would be a silent change in what the panel does, so the
-             * case-insensitive form is asked for explicitly — Laravel renders
-             * it as ILIKE on PostgreSQL and plain LIKE elsewhere.
+             * `whereLike` rather than `where(..., 'like', ...)`: searching
+             * for "Nagaland" and not finding "nagaland" would be a silent
+             * change in what the panel does, so case-insensitivity is asked
+             * for explicitly rather than left to the column's collation.
              */
             ->when($search !== '', fn (Builder $query) => $query->where(
                 fn (Builder $query) => $query
@@ -128,7 +126,6 @@ class BlogPostController extends Controller
         $this->stampPublication($post);
 
         if ($request->hasFile('image_file')) {
-            $post->image_disk = $this->files->disk();
             $post->image_path = $this->files->put($request->file('image_file'), self::FOLDER);
         }
 
@@ -142,7 +139,7 @@ class BlogPostController extends Controller
 
     public function update(UpdateBlogPostRequest $request, BlogPost $blog): JsonResponse
     {
-        $previous = [$blog->image_disk, $blog->image_path];
+        $previous = $blog->image_path;
         $replacing = $request->hasFile('image_file');
 
         $blog->fill($request->postAttributes());
@@ -151,14 +148,13 @@ class BlogPostController extends Controller
         $this->stampPublication($blog);
 
         if ($replacing) {
-            $blog->image_disk = $this->files->disk();
             $blog->image_path = $this->files->put($request->file('image_file'), self::FOLDER);
         }
 
         $blog->save();
 
         if ($replacing) {
-            $this->files->forget($previous[0], $previous[1]);
+            $this->files->forget($previous);
         }
 
         return response()->json(['data' => new BlogPostResource($blog->refresh()->load('author'))]);
@@ -166,11 +162,10 @@ class BlogPostController extends Controller
 
     public function destroy(BlogPost $blog): JsonResponse
     {
-        $disk = $blog->image_disk;
         $path = $blog->image_path;
 
         $blog->delete();
-        $this->files->forget($disk, $path);
+        $this->files->forget($path);
 
         return response()->json(null, Response::HTTP_NO_CONTENT);
     }

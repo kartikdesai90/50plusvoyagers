@@ -4,16 +4,25 @@ import type { Tour, TourInput, TourListResponse, TourQuery } from '@/admin/featu
 /**
  * The tour endpoints.
  *
- * Plain JSON, unlike the modules that carry a picture: a tour is five fields of
- * text and a date, so there is nothing multipart to send. The update is still a
- * POST rather than a PATCH, matching every other module — one rule for how the
- * panel saves is worth more than this one endpoint being tidier than its
- * neighbours, and it needs no change on the day a tour gains a photograph.
+ * Multipart on every write, because a write may carry the main image, the route
+ * map or the social image. Sending JSON when there is no file and multipart when
+ * there is would give the module two request shapes and the server two ways to
+ * read the same form.
+ *
+ * The update is a POST rather than a PATCH for the same reason every other
+ * module's is: PHP does not parse a multipart body on any other method.
  */
 
 const BASE = '/admin/tours';
 
 type TourEnvelope = { data: Tour };
+
+/** The three pictures a tour itself carries. */
+export type TourFiles = {
+    image_file?: File | null;
+    route_map_file?: File | null;
+    og_image_file?: File | null;
+};
 
 export async function listTours(query: TourQuery = {}): Promise<TourListResponse> {
     const { data } = await http.get<TourListResponse>(BASE, { params: query });
@@ -27,28 +36,38 @@ export async function getTour(id: number): Promise<Tour> {
     return data.data;
 }
 
-/**
- * An empty date has to travel as an empty string, not be dropped.
- *
- * Omitting the key would leave a tour's existing end date untouched on an edit,
- * which is not what clearing the field means.
- */
-function payload(input: TourInput): TourInput {
-    return {
-        tour_code: input.tour_code.trim(),
-        tour_name: input.tour_name.trim(),
-        end_date: input.end_date,
-    };
+function toFormData(input: TourInput, files: TourFiles): FormData {
+    const form = new FormData();
+
+    for (const [key, value] of Object.entries(input)) {
+        /*
+         * An empty string is sent, not skipped. Laravel's
+         * ConvertEmptyStringsToNull turns it into null on arrival, which is
+         * what clearing a field means — omitting the key would instead leave
+         * the stored value untouched.
+         */
+        form.append(key, value);
+    }
+
+    if (files.image_file) form.append('image_file', files.image_file);
+    if (files.route_map_file) form.append('route_map_file', files.route_map_file);
+    if (files.og_image_file) form.append('og_image_file', files.og_image_file);
+
+    return form;
 }
 
-export async function createTour(input: TourInput): Promise<Tour> {
-    const { data } = await http.post<TourEnvelope>(BASE, payload(input));
+export async function createTour(input: TourInput, files: TourFiles = {}): Promise<Tour> {
+    const { data } = await http.post<TourEnvelope>(BASE, toFormData(input, files));
 
     return data.data;
 }
 
-export async function updateTour(id: number, input: TourInput): Promise<Tour> {
-    const { data } = await http.post<TourEnvelope>(`${BASE}/${id}`, payload(input));
+export async function updateTour(
+    id: number,
+    input: TourInput,
+    files: TourFiles = {},
+): Promise<Tour> {
+    const { data } = await http.post<TourEnvelope>(`${BASE}/${id}`, toFormData(input, files));
 
     return data.data;
 }

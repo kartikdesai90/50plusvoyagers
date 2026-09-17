@@ -475,16 +475,26 @@
         }
     }
 
-    /* --------------------------------------------------------- Image dividers */
+    /* ---------------------------------------------------------- Image dividers */
+    /*
+     * The height belongs to the box, not to the picture inside it.
+     *
+     * `BandMedia` draws through `next/image` with `fill`, which positions the
+     * picture absolutely — so it can no longer give its parent a height, and a
+     * parent with none collapsed the whole band to zero. The browser reported
+     * it plainly: "has 'fill' and a height value of 0". The band still painted
+     * its text, so the fault read as a missing photograph rather than a broken
+     * box, and it cost layout shift on every divider on the page.
+     */
     .voy-divider {
         @apply relative overflow-hidden rounded-3xl;
+        block-size: clamp(420px, 38vw, 480px);
     }
 
     /* A band's media may be a picture or a film. Both are given the same box,
        so which one an editor chose changes nothing about the layout. */
     .voy-divider :is(img, video) {
-        @apply w-full object-cover;
-        height: clamp(420px, 38vw, 480px);
+        @apply h-full w-full object-cover;
         transition: transform 0.7s var(--ease-brand);
     }
 
@@ -685,6 +695,27 @@
     }
 
     /*
+     * The figure fills the layer; the caption takes what it needs and the
+     * picture takes the rest.
+     *
+     * The height used to be guessed — `min(76vh, 100dvh - 12rem)` — which
+     * capped every photograph at three quarters of the screen and reserved
+     * twelve rems for a caption that is usually one line. On a 1080px screen
+     * that left a quarter of the viewport empty around a picture the visitor
+     * had opened precisely to see larger.
+     *
+     * Measuring instead of guessing: the figure is a column the height of the
+     * layer, the caption is `flex-shrink: 0` so it is never squeezed, and the
+     * image is `min-block-size: 0` so it may shrink below its natural size to
+     * whatever is left. A tall caption takes its room and the picture yields;
+     * a one-line caption leaves nearly the whole screen to the photograph.
+     */
+    .voy-lightbox-figure {
+        block-size: 100%;
+        min-block-size: 0;
+    }
+
+    /*
      * The picture, at whatever size fits.
      *
      * Bounded rather than sized: `max-` on both axes lets a photograph draw at
@@ -694,13 +725,14 @@
      * with no resolved height of its own, so a percentage had nothing to be a
      * percentage of.
      *
-     * The height leaves room for the caption underneath: the layer's own
-     * padding is already subtracted by `100dvh` minus the padding box, and the
-     * `12rem` is the caption at its tallest plus the gap above it.
+     * `min-block-size: 0` is what lets it shrink at all: a flex item defaults
+     * to `min-height: auto`, which refuses to go below the content's own size
+     * and would push the caption off the bottom of a short viewport.
      */
     .voy-lightbox-image {
+        min-block-size: 0;
         max-inline-size: 100%;
-        max-block-size: min(76vh, calc(100dvh - 12rem));
+        max-block-size: 100%;
         inline-size: auto;
         block-size: auto;
         object-fit: contain;

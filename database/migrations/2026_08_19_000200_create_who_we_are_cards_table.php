@@ -29,7 +29,6 @@ return new class extends Migration
             $table->string('title', 80);
             $table->text('body')->nullable();
 
-            $table->string('image_disk', 40)->nullable();
             $table->string('image_path', 2048)->nullable();
 
             // The same pair every list on this site is ordered and filtered by,

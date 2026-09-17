@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 import { groupTourPath, paths } from '@/routes/paths';
+import { fetchTourCards } from '@/site/data/tour-content';
 import { tours } from '@/site/data/tours';
 import { siteUrl } from '@/site/seo/site-url';
 
@@ -17,13 +18,16 @@ import { siteUrl } from '@/site/seo/site-url';
  * a sitemap naming an address that no longer routes is the same broken promise
  * as before, arrived at more slowly.
  *
- * The two `:slug` routes are treated differently because their addresses are
- * known differently. Group tours come from a static catalogue in the tree and
- * `dynamicParams = false` makes that list exhaustive — the same list the router
- * will answer on, so naming them here cannot promise a 404. Journal posts are
- * fetched per request, so their slugs are not knowable at build time; listing
- * them means fetching them, which is worth doing and is the next thing to add
- * rather than something to guess at from this file.
+ * Group tour addresses are fetched rather than read off the static catalogue.
+ * They used to come from the catalogue alone, which was true while every tour
+ * lived in the front end — it stopped being true the moment one could be
+ * published from the admin panel, and a migrated tour was then absent from the
+ * sitemap entirely. Both lists are merged and de-duplicated, because the
+ * catalogue still answers for the tours nobody has migrated yet.
+ *
+ * Journal posts are still not listed: their slugs are fetched per request and
+ * listing them means fetching them, which is worth doing and is the next thing
+ * to add rather than something to guess at from this file.
  */
 
 /**
@@ -46,7 +50,7 @@ const PUBLIC_PAGES = [
     paths.terms,
 ] as const;
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const origin = siteUrl();
 
     /*
@@ -56,6 +60,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
      * changes when the code does.
      */
     const lastModified = new Date();
+
+    /*
+     * Published tours first, then any shipped-catalogue tour not among them.
+     * A Set rather than a filter over both lists: the two overlap by slug once
+     * a catalogue tour is migrated, and naming an address twice in a sitemap is
+     * the kind of small incoherence that costs trust in the whole file.
+     */
+    const published = await fetchTourCards();
+    const slugs = [...published.map((tour) => tour.slug), ...tours.map((tour) => tour.slug)];
+    const tourSlugs = [...new Set(slugs)];
 
     return [
         {
@@ -78,8 +92,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
             changeFrequency: 'monthly' as const,
             priority: 0.8,
         })),
-        ...tours.map((tour) => ({
-            url: `${origin}${groupTourPath(tour.slug)}`,
+        ...tourSlugs.map((slug) => ({
+            url: `${origin}${groupTourPath(slug)}`,
             lastModified,
             changeFrequency: 'monthly' as const,
             /*

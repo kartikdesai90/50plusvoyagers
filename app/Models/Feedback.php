@@ -26,11 +26,8 @@ class Feedback extends Model
         'customer_location',
         'feedback_text',
         'video_url',
-        'video_disk',
         'video_path',
-        'thumbnail_disk',
         'thumbnail_path',
-        'photo_disk',
         'photo_path',
         'rating',
         'tour_id',
@@ -82,17 +79,17 @@ class Feedback extends Model
      */
     public function videoSource(): ?string
     {
-        return $this->files()->url($this->video_disk, $this->video_path) ?? $this->video_url;
+        return $this->files()->url($this->video_path) ?? $this->video_url;
     }
 
     public function thumbnailUrl(): ?string
     {
-        return $this->files()->url($this->thumbnail_disk, $this->thumbnail_path);
+        return $this->files()->url($this->thumbnail_path);
     }
 
     public function photoUrl(): ?string
     {
-        return $this->files()->url($this->photo_disk, $this->photo_path);
+        return $this->files()->url($this->photo_path);
     }
 
     private function files(): FileStore

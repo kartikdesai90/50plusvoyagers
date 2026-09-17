@@ -35,7 +35,6 @@ return new class extends Migration
             $table->text('excerpt')->nullable();
             $table->longText('content')->nullable();
 
-            $table->string('image_disk', 40)->nullable();
             $table->string('image_path', 2048)->nullable();
 
             $table->string('category', 80)->nullable();

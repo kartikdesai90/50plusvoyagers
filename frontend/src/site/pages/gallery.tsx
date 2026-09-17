@@ -5,8 +5,8 @@ import { useCallback, useState } from 'react';
 import { Container, Section, SectionHeading } from '@/site/components/section';
 import { CtaBand } from '@/site/components/cta-band';
 import { GalleryLightbox } from '@/site/components/gallery-lightbox';
+import { PhotoCard } from '@/site/components/photo-card';
 import { PageHero } from '@/site/components/page-hero';
-import { SiteImage } from '@/site/components/site-image';
 import type { GalleryPhoto } from '@/site/types/gallery';
 
 type GalleryPageProps = {
@@ -74,46 +74,18 @@ export default function GalleryPage({ photos }: GalleryPageProps) {
                             className="grid grid-cols-[repeat(auto-fit,minmax(min(250px,100%),1fr))] gap-[clamp(12px,1.4vw,18px)]"
                         >
                             {shown.map((photo, index) => (
-                                /*
-                                 * A button rather than a figure with a click
-                                 * handler. It opens a layer, which is what a
-                                 * button is for — and it comes with the keyboard
-                                 * and the announcement already right, rather
-                                 * than a tabindex and a role bolted onto a div.
-                                 */
-                                <button
+                                <PhotoCard
                                     key={photo.id}
-                                    type="button"
-                                    onClick={() => setOpenAt(index)}
-                                    aria-label={`View ${photo.title} larger`}
-                                    className="group relative block w-full cursor-pointer overflow-hidden rounded-[10px] text-left outline-none"
-                                >
-                                    <div className="relative h-[clamp(300px,30vw,400px)] w-full">
-                                        <SiteImage
-                                            src={photo.image_url ?? ''}
-                                            alt={photo.image_alt}
-                                            /* A wrapping grid of roughly-300px
-                                               cards: one across on a phone, two
-                                               on a tablet, three or four up. */
-                                            sizes="(max-width: 567px) 92vw, (max-width: 867px) 46vw, (max-width: 1135px) 31vw, 280px"
-                                            className="object-cover"
-                                        />
-                                    </div>
-
-                                    {/* The homepage's caption, unchanged — it
-                                        rises on hover, and is simply there on a
-                                        screen with no pointer to hover with. */}
-                                    <div className="voy-overlay bg-linear-to-t from-[rgb(16_15_12/0.9)] from-4% via-[rgb(16_15_12/0.25)] via-52% to-transparent to-82% p-6">
-                                        <div className="mb-2.5 font-serif text-[23px]/[1.1] font-medium">
-                                            {photo.title}
-                                        </div>
-                                        {photo.caption ? (
-                                            <p className="text-sm/[1.5] text-white/85">
-                                                {photo.caption}
-                                            </p>
-                                        ) : null}
-                                    </div>
-                                </button>
+                                    src={photo.image_url ?? ''}
+                                    alt={photo.image_alt}
+                                    title={photo.title}
+                                    caption={photo.caption}
+                                    /* A wrapping grid of roughly-300px cards:
+                                       one across on a phone, two on a tablet,
+                                       three or four up. */
+                                    sizes="(max-width: 567px) 92vw, (max-width: 867px) 46vw, (max-width: 1135px) 31vw, 280px"
+                                    onOpen={() => setOpenAt(index)}
+                                />
                             ))}
                         </div>
                     )}

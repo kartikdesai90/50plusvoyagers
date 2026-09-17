@@ -32,7 +32,6 @@ class JournalTest extends TestCase
             'slug' => 'a-week-in-ladakh',
             'excerpt' => 'Nine unhurried days at altitude.',
             'content' => "The road up is the first pleasure.\n\nThe second is the arriving.",
-            'image_disk' => 'public',
             'image_path' => '/images/home/trip-ladakh.webp',
             'category' => 'Travelogue',
             'author_name' => 'Chitra Warrier',

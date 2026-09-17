@@ -17,14 +17,13 @@ use Illuminate\Support\Str;
  *
  * The model owns one thing the rest of the application must never work out for
  * itself: how a stored file becomes an address a browser can fetch. Nothing
- * outside {@see mediaUrl()} may touch `media_disk` or `media_path`, which is
- * what keeps moving to object storage or a CDN a configuration change.
+ * outside {@see mediaUrl()} may touch `media_path`, which is what keeps moving
+ * to object storage or a CDN a configuration change.
  */
 class HeroBanner extends Model
 {
     protected $fillable = [
         'section_type',
-        'media_disk',
         'media_path',
         'label',
         'heading',
@@ -78,7 +77,7 @@ class HeroBanner extends Model
      */
     public function mediaUrl(): string
     {
-        return app(FileStore::class)->url($this->media_disk, $this->media_path) ?? '';
+        return app(FileStore::class)->url($this->media_path) ?? '';
     }
 
     /** True where the file was uploaded rather than shipped with the design. */

@@ -52,19 +52,18 @@ class WhyUsSectionController extends Controller
 
         $file = $request->file('image_file');
         $replacing = $file instanceof UploadedFile;
-        $previous = [$section->image_disk, $section->image_path];
+        $previous = $section->image_path;
 
         $section->fill($request->whyUsAttributes());
 
         if ($replacing) {
-            $section->image_disk = $this->files->disk();
             $section->image_path = $this->files->put($file, self::FOLDER);
         }
 
         $section->save();
 
         if ($replacing) {
-            $this->files->forget($previous[0], $previous[1]);
+            $this->files->forget($previous);
         }
 
         /* Read once per request and cached for it; this one has just changed it. */

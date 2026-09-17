@@ -4,6 +4,7 @@ use App\Http\Controllers\Site\BlogController;
 use App\Http\Controllers\Site\GalleryController;
 use App\Http\Controllers\Site\HomeController;
 use App\Http\Controllers\Site\SettingsController;
+use App\Http\Controllers\Site\TourController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -59,4 +60,17 @@ Route::prefix('api/site')->name('site.api.')->group(function () {
     Route::get('blog/{slug}', [BlogController::class, 'show'])
         ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
         ->name('blog.show');
+
+    /*
+     * One tour page. No index beside it: the group tours listing still runs on
+     * the front end's own catalogue, and it earns an endpoint on the day that
+     * content moves rather than in anticipation of it.
+     *
+     * Same slug constraint as the journal, for the same reason.
+     */
+    Route::get('tours', [TourController::class, 'index'])->name('tours.index');
+
+    Route::get('tours/{slug}', [TourController::class, 'show'])
+        ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
+        ->name('tours.show');
 });

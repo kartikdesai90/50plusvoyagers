@@ -9,6 +9,8 @@
 > **Read this first.** On 2026-08-18 the database moved from MySQL to PostgreSQL
 > and the front end from React/Inertia to Next.js 16. See
 > [Migration: PostgreSQL and Next.js](./migration-postgresql-and-nextjs.md).
+> On 2026-09-02 the database moved back to MySQL; that note is kept as a record
+> of what happened, not as a description of the database in use now.
 > The documents below were generated before that and still describe Vite,
 > Inertia and the SSR sidecar. What they say about the components and the
 > motion layer is still true — those moved unchanged — and their file paths
@@ -32,7 +34,7 @@ interesting architecture is in `frontend/src`.
 - **Tech Stack:** Next.js 16 · React 19 · TypeScript 6 · Tailwind CSS v4 · shadcn/ui · GSAP + Lenis · Laravel 13 · PHP 8.3
 - **Entry Point:** `frontend/src/app/layout.tsx`, with the route tree beneath it
 - **Architecture Pattern:** Server-rendered public area and a client-rendered admin panel, both Next routes, over a Laravel JSON API
-- **Database:** PostgreSQL (`50_plusvoyagers`)
+- **Database:** MySQL (`50_plusvoyagers`)
 - **Deployment:** not configured. Two processes — `next start` for the front end, PHP-FPM for the API — with Laravel bound to localhost behind Next.
 
 ## Generated Documentation
@@ -80,7 +82,7 @@ Laravel serves no HTML at all; every page address belongs to the front end.
 - PHP **8.3+** (hard requirement — `composer.json` pins `platform.php` to 8.3.33)
 - Composer 2.x
 - Node.js **20.9+ or 22.x** (Next 16 requirement)
-- PostgreSQL 14+, and a PHP build with `pdo_pgsql` enabled
+- MySQL 8.0+, and a PHP build with `pdo_mysql` enabled
 
 ### Setup
 

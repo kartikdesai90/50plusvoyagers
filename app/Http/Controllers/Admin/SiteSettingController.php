@@ -27,14 +27,14 @@ class SiteSettingController extends Controller
     private const FOLDER = 'site';
 
     /**
-     * The three pictures the settings hold, and the pair of columns each is
-     * stored in. Written once so adding a fourth is one line rather than three
+     * The three pictures the settings hold, and the column each is stored in.
+     * Written once so adding a fourth is one line rather than three
      * near-identical blocks of replace-then-forget.
      */
     private const IMAGES = [
-        'logo_file' => ['logo_disk', 'logo_path'],
-        'favicon_file' => ['favicon_disk', 'favicon_path'],
-        'og_image_file' => ['og_image_disk', 'og_image_path'],
+        'logo_file' => 'logo_path',
+        'favicon_file' => 'favicon_path',
+        'og_image_file' => 'og_image_path',
     ];
 
     public function __construct(private readonly FileStore $files) {}
@@ -62,24 +62,23 @@ class SiteSettingController extends Controller
 
         $replaced = [];
 
-        foreach (self::IMAGES as $field => [$diskColumn, $pathColumn]) {
+        foreach (self::IMAGES as $field => $pathColumn) {
             $file = $request->file($field);
 
             if (!$file instanceof UploadedFile) {
                 continue;
             }
 
-            $replaced[] = [$settings->{$diskColumn}, $settings->{$pathColumn}];
+            $replaced[] = $settings->{$pathColumn};
 
-            $settings->{$diskColumn} = $this->files->disk();
             $settings->{$pathColumn} = $this->files->put($file, self::FOLDER);
         }
 
         $settings->fill($request->settingAttributes());
         $settings->save();
 
-        foreach ($replaced as [$disk, $path]) {
-            $this->files->forget($disk, $path);
+        foreach ($replaced as $path) {
+            $this->files->forget($path);
         }
 
         /* The settings are read once per request and cached for it; this one

@@ -11,10 +11,26 @@
 const img = (name: string) => `/images/home/${name}.webp`;
 
 export type Tour = {
+    /**
+     * The tour's address.
+     *
+     * Empty on the design's own departures, which the homepage falls back to
+     * until tours are migrated: they describe a trip without being one, so
+     * there is no page to open. {@see TourCard} renders those as a card rather
+     * than as a link. Every catalogue entry here carries a real one.
+     */
     slug: string;
     title: string;
-    /** Broad grouping, used as the card badge and the listing filter. */
-    region: 'India' | 'International';
+    /**
+     * Broad grouping, used as the card badge.
+     *
+     * A string rather than the `'India' | 'International'` union it began as.
+     * The catalogue only ever wrote those two, but the database calls an Indian
+     * departure "Domestic", and a union that excludes the word the API actually
+     * sends would force every migrated tour through a translation nothing asked
+     * for. The badge prints whatever the source calls it.
+     */
+    region: string;
     /** Departure month key, e.g. `2026-09`. Drives the month filter. */
     month: string;
     /** Human departure date, as printed on the card. */

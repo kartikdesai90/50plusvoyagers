@@ -27,6 +27,8 @@ class DatabaseSeeder extends Seeder
             FeedbackSeeder::class,
             GalleryItemSeeder::class,
             BlogPostSeeder::class,
+            TourSeeder::class,
+            CrmDepartureSeeder::class,
         ]);
     }
 }

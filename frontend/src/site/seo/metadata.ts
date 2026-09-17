@@ -31,6 +31,27 @@ type SeoInput = {
     noindex?: boolean;
     /** This page's own address, root-relative. Resolved against `metadataBase`. */
     path?: string;
+
+    /**
+     * The picture a shared link to *this* page shows.
+     *
+     * Falls back to the site's own. A page that has one — a tour, an article —
+     * passes it; the pages that are the site itself do not, and get the site's
+     * as they always did.
+     */
+    image?: string | null;
+
+    /**
+     * What a shared card says, where an editor wrote something different from
+     * the search title.
+     *
+     * They are genuinely two jobs: a search title is written for a results page
+     * and is usually suffixed with the company name, while a share title is
+     * read on its own inside a card. The admin stores both, so both are
+     * honoured; either falling back to the search text where it is empty.
+     */
+    ogTitle?: string | null;
+    ogDescription?: string | null;
 };
 
 export async function pageMetadata({
@@ -38,17 +59,33 @@ export async function pageMetadata({
     description,
     noindex = false,
     path,
+    image,
+    ogTitle,
+    ogDescription,
 }: SeoInput): Promise<Metadata> {
     const settings = await fetchSettings();
 
     const summary = description ?? settings.meta_description ?? '';
+
     /*
-     * The page's own picture would go here if pages had one; until then every
-     * shared link shows the site's. Left out entirely rather than defaulted to
-     * something, because a broken `og:image` is worse than none — a card with a
+     * This page's own picture where it has one, the site's otherwise.
+     *
+     * Pages used to have no way to pass one, so every shared tour and every
+     * shared article advertised the same site-wide image — an editor could
+     * upload a share image in the admin, see it stored, and never find it
+     * anywhere. Left undefined when neither exists rather than defaulted to
+     * something, because a broken `og:image` is worse than none: a card with a
      * missing picture in it looks like a broken site.
+     *
+     * Root-relative is correct here. `metadataBase` in the root layout is what
+     * makes these absolute in the rendered tag, which is what a scraper needs —
+     * building an absolute URL here would hardcode a host this layer does not
+     * reliably know.
      */
-    const image = settings.og_image_url ?? undefined;
+    const shareImage = image ?? settings.og_image_url ?? undefined;
+
+    const shareTitle = ogTitle || title;
+    const shareDescription = ogDescription || summary;
 
     return {
         title,
@@ -62,16 +99,16 @@ export async function pageMetadata({
         openGraph: {
             type: 'website',
             siteName: settings.company_name,
-            title,
-            description: summary,
+            title: shareTitle,
+            description: shareDescription,
             url: path,
-            images: image,
+            images: shareImage,
         },
         twitter: {
             card: 'summary_large_image',
-            title,
-            description: summary,
-            images: image,
+            title: shareTitle,
+            description: shareDescription,
+            images: shareImage,
         },
     };
 }

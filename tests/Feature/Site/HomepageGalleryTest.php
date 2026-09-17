@@ -35,7 +35,6 @@ class HomepageGalleryTest extends TestCase
         return array_merge([
             'title' => 'Pangong Lake, Ladakh',
             'caption' => 'Ancient blue water and thin mountain air.',
-            'image_disk' => 'public',
             'image_path' => '/images/home/pangong-lake.webp',
             'is_active' => true,
             'display_order' => 0,
@@ -104,7 +103,7 @@ class HomepageGalleryTest extends TestCase
 
         $photograph = $this->content()->json('gallery.0');
 
-        foreach (['is_active', 'display_order', 'tour_id', 'image_disk', 'image_path'] as $absent) {
+        foreach (['is_active', 'display_order', 'tour_id', 'image_path'] as $absent) {
             $this->assertArrayNotHasKey($absent, $photograph);
         }
     }
