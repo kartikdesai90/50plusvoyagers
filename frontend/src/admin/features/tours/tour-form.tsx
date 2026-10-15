@@ -3,8 +3,8 @@ import { useId, useState } from 'react';
 import { AdvancedSettings } from '@/admin/components/advanced-settings';
 import { FileUploadField } from '@/admin/components/file-upload-field';
 import { FormActions } from '@/admin/components/form-actions';
-import { Field, FormGrid, FormLayout, FormSection } from '@/admin/components/form-section';
-import { SelectField } from '@/admin/components/select-field';
+import { Field, FormLayout, FormSection } from '@/admin/components/form-section';
+import { formatEndDate, formatRupees } from '@/admin/features/tours/defaults';
 import type { TourFiles } from '@/admin/features/tours/tours-api';
 import type { Tour, TourInput } from '@/admin/features/tours/types';
 import { paths } from '@/routes/paths';
@@ -55,22 +55,16 @@ export function TourForm({
 
     const codeId = useId();
     const nameId = useId();
-    const endDateId = useId();
     const slugId = useId();
     const pageTitleId = useId();
     const subtitleId = useId();
     const summaryId = useId();
     const ribbonId = useId();
-    const regionId = useId();
     const visaId = useId();
-    const feeId = useId();
-    const balanceId = useId();
     const mainImageId = useId();
     const routeMapId = useId();
     const ogImageId = useId();
-    const statusId = useId();
     const orderId = useId();
-    const legacyId = useId();
     const metaTitleId = useId();
     const metaDescriptionId = useId();
     const metaKeywordsId = useId();
@@ -101,42 +95,26 @@ export function TourForm({
                     <>
                         <FormSection
                             title="In the CRM"
-                            description="As the client's system records this tour. The code is how it is matched to its departures."
+                            description="The code joins this page to tb_group_tour. Dates, price and category are read from there — they are not edited here."
                         >
-                            <FormGrid>
-                                <Field
-                                    label="Tour code"
-                                    htmlFor={codeId}
-                                    required
-                                    error={fieldErrors.tour_code}
-                                    hint="e.g. Coorg30052026. No two tours share one."
-                                >
-                                    <Input
-                                        id={codeId}
-                                        value={form.tour_code}
-                                        maxLength={50}
-                                        placeholder="Coorg30052026"
-                                        autoComplete="off"
-                                        onChange={(event) =>
-                                            change('tour_code', event.target.value)
-                                        }
-                                    />
-                                </Field>
-
-                                <Field
-                                    label="Ends on"
-                                    htmlFor={endDateId}
-                                    error={fieldErrors.end_date}
-                                    hint="Leave empty if the date is not settled yet."
-                                >
-                                    <Input
-                                        id={endDateId}
-                                        type="date"
-                                        value={form.end_date}
-                                        onChange={(event) => change('end_date', event.target.value)}
-                                    />
-                                </Field>
-                            </FormGrid>
+                            <Field
+                                label="Tour code"
+                                htmlFor={codeId}
+                                required
+                                error={fieldErrors.tour_code}
+                                hint="e.g. Coorg30052026. No two tours share one."
+                            >
+                                <Input
+                                    id={codeId}
+                                    value={form.tour_code}
+                                    maxLength={50}
+                                    placeholder="Coorg30052026"
+                                    autoComplete="off"
+                                    onChange={(event) =>
+                                        change('tour_code', event.target.value)
+                                    }
+                                />
+                            </Field>
 
                             <Field
                                 label="Tour name"
@@ -153,6 +131,8 @@ export function TourForm({
                                     onChange={(event) => change('tour_name', event.target.value)}
                                 />
                             </Field>
+
+                            <CrmSnapshot tour={existing} />
                         </FormSection>
 
                         <FormSection
@@ -219,42 +199,22 @@ export function TourForm({
                                 />
                             </Field>
 
-                            <FormGrid>
-                                <Field
-                                    label="Ribbon"
-                                    htmlFor={ribbonId}
-                                    error={fieldErrors.ribbon_text}
-                                    hint="The small badge over the photograph."
-                                >
-                                    <Input
-                                        id={ribbonId}
-                                        value={form.ribbon_text}
-                                        maxLength={80}
-                                        placeholder="Stay in Coffee Estate"
-                                        onChange={(event) =>
-                                            change('ribbon_text', event.target.value)
-                                        }
-                                    />
-                                </Field>
-
-                                <Field
-                                    label="Region"
-                                    htmlFor={regionId}
-                                    error={fieldErrors.region}
-                                    hint="Drives the India / International filter."
-                                >
-                                    <SelectField
-                                        id={regionId}
-                                        value={form.region}
-                                        onChange={(value) => change('region', value)}
-                                        options={[
-                                            { value: '', label: 'Not set' },
-                                            { value: 'India', label: 'India' },
-                                            { value: 'International', label: 'International' },
-                                        ]}
-                                    />
-                                </Field>
-                            </FormGrid>
+                            <Field
+                                label="Ribbon"
+                                htmlFor={ribbonId}
+                                error={fieldErrors.ribbon_text}
+                                hint="The small badge over the photograph."
+                            >
+                                <Input
+                                    id={ribbonId}
+                                    value={form.ribbon_text}
+                                    maxLength={80}
+                                    placeholder="Stay in Coffee Estate"
+                                    onChange={(event) =>
+                                        change('ribbon_text', event.target.value)
+                                    }
+                                />
+                            </Field>
 
                             <Field
                                 label="Visa note"
@@ -269,50 +229,6 @@ export function TourForm({
                                     onChange={(event) => change('visa_content', event.target.value)}
                                 />
                             </Field>
-                        </FormSection>
-
-                        <FormSection
-                            title="Booking terms"
-                            description="Both differ per tour, so neither can be a site-wide setting."
-                        >
-                            <FormGrid>
-                                <Field
-                                    label="Booking fee"
-                                    htmlFor={feeId}
-                                    error={fieldErrors.booking_fee}
-                                    hint="In rupees, e.g. 30000. Shown on the booking panel."
-                                >
-                                    <Input
-                                        id={feeId}
-                                        type="number"
-                                        min={0}
-                                        value={form.booking_fee}
-                                        placeholder="30000"
-                                        onChange={(event) =>
-                                            change('booking_fee', event.target.value)
-                                        }
-                                    />
-                                </Field>
-
-                                <Field
-                                    label="Balance due"
-                                    htmlFor={balanceId}
-                                    error={fieldErrors.balance_due_days}
-                                    hint="Days before departure, e.g. 60."
-                                >
-                                    <Input
-                                        id={balanceId}
-                                        type="number"
-                                        min={0}
-                                        max={365}
-                                        value={form.balance_due_days}
-                                        placeholder="60"
-                                        onChange={(event) =>
-                                            change('balance_due_days', event.target.value)
-                                        }
-                                    />
-                                </Field>
-                            </FormGrid>
                         </FormSection>
 
                         <FormSection
@@ -452,45 +368,14 @@ export function TourForm({
                                 />
                             </Field>
 
-                            <Field
-                                label="Old address"
-                                htmlFor={legacyId}
-                                error={fieldErrors.legacy_url}
-                                hint="Where this page lived on the old site, e.g. /grouptour/coorg.html. Used to redirect old links here."
-                            >
-                                <Input
-                                    id={legacyId}
-                                    value={form.legacy_url}
-                                    maxLength={2048}
-                                    placeholder="/grouptour/coorg.html"
-                                    onChange={(event) => change('legacy_url', event.target.value)}
-                                />
-                            </Field>
                         </AdvancedSettings>
                     </>
                 }
                 aside={
                     <FormSection
                         title="Visibility"
-                        description="A tour is only on the site once it is published and has an address."
+                        description="The site shows a tour once it has an address. Live vs hidden is tour_status on tb_group_tour, not a second flag here."
                     >
-                        <Field
-                            label="Status"
-                            htmlFor={statusId}
-                            error={fieldErrors.status}
-                            hint="A published tour needs an address."
-                        >
-                            <SelectField
-                                id={statusId}
-                                value={form.status}
-                                onChange={(value) => change('status', value)}
-                                options={[
-                                    { value: 'draft', label: 'Draft' },
-                                    { value: 'published', label: 'Published' },
-                                ]}
-                            />
-                        </Field>
-
                         <Field
                             label="Order"
                             htmlFor={orderId}
@@ -524,5 +409,62 @@ export function TourForm({
                 isSaving={isSaving}
             />
         </form>
+    );
+}
+
+function CrmSnapshot({ tour }: { tour?: Tour | null }) {
+    if (!tour) {
+        return (
+            <p className="text-xs/[1.6] text-muted-foreground">
+                Save this tour, then dates, package cost, deposit and category appear here from
+                tb_group_tour. They cannot be edited on this page.
+            </p>
+        );
+    }
+
+    const crm = tour.crm;
+
+    if (!crm) {
+        return (
+            <p className="text-xs/[1.6] text-muted-foreground">
+                No upcoming CRM departure matches this tour code yet. Package cost, dates and
+                category will appear here once tb_group_tour has a live row.
+            </p>
+        );
+    }
+
+    const facts = [
+        ['Departs', formatEndDate(crm.starts_on)],
+        ['Ends', formatEndDate(crm.ends_on)],
+        [
+            'Duration',
+            crm.nights != null ? `${crm.nights + 1} days / ${crm.nights} nights` : '—',
+        ],
+        ['Package cost', formatRupees(crm.price)],
+        ['Advance', formatRupees(crm.advance)],
+        ['Category', crm.category ?? '—'],
+        ['CRM status', crm.status ?? '—'],
+        ['Booking', crm.booking_open === null ? '—' : crm.booking_open ? 'Open' : 'Closed'],
+    ];
+
+    return (
+        <dl className="grid gap-3 sm:grid-cols-2">
+            {facts.map(([label, value]) => (
+                <div key={label}>
+                    <dt className="text-[11px] font-semibold tracking-[0.06em] text-muted-foreground uppercase">
+                        {label}
+                    </dt>
+                    <dd className="mt-0.5 text-sm text-foreground">{value}</dd>
+                </div>
+            ))}
+            {crm.website_link ? (
+                <div className="sm:col-span-2">
+                    <dt className="text-[11px] font-semibold tracking-[0.06em] text-muted-foreground uppercase">
+                        CRM website link
+                    </dt>
+                    <dd className="mt-0.5 break-all text-sm text-foreground">{crm.website_link}</dd>
+                </div>
+            ) : null}
+        </dl>
     );
 }

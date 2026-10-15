@@ -37,7 +37,7 @@ class TourPageResource extends JsonResource
             'slug' => $this->slug,
             'title' => $this->heading(),
             'subtitle' => $this->subtitle,
-            'region' => $this->region,
+            'region' => $this->publicRegion(),
             'summary' => $this->summary,
             'ribbon_text' => $this->ribbon_text,
             /*
@@ -49,8 +49,8 @@ class TourPageResource extends JsonResource
             'route_map_url' => $this->routeMapUrl(),
             'visa_content' => $this->visa_content,
 
-            'booking_fee' => $this->booking_fee,
-            'balance_due_days' => $this->balance_due_days,
+            'booking_fee' => $this->publicBookingFee(),
+            'balance_due_days' => null,
 
             /*
              * Read from the CRM, never stored here. `departures` is a list

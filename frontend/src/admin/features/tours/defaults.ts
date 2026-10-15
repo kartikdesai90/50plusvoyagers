@@ -4,18 +4,13 @@ import type { Tour, TourInput } from '@/admin/features/tours/types';
 export const blankTour: TourInput = {
     tour_code: '',
     tour_name: '',
-    end_date: '',
 
     slug: '',
-    legacy_url: '',
     page_title: '',
     subtitle: '',
-    region: '',
     summary: '',
     ribbon_text: '',
     visa_content: '',
-    booking_fee: '',
-    balance_due_days: '',
 
     meta_title: '',
     meta_description: '',
@@ -24,7 +19,6 @@ export const blankTour: TourInput = {
     og_description: '',
     canonical_url: '',
 
-    status: 'draft',
     display_order: '0',
 };
 
@@ -33,18 +27,13 @@ export function toInput(tour: Tour): TourInput {
     return {
         tour_code: tour.tour_code,
         tour_name: tour.tour_name,
-        end_date: tour.end_date ?? '',
 
         slug: tour.slug ?? '',
-        legacy_url: tour.legacy_url ?? '',
         page_title: tour.page_title ?? '',
         subtitle: tour.subtitle ?? '',
-        region: tour.region ?? '',
         summary: tour.summary ?? '',
         ribbon_text: tour.ribbon_text ?? '',
         visa_content: tour.visa_content ?? '',
-        booking_fee: tour.booking_fee === null ? '' : String(tour.booking_fee),
-        balance_due_days: tour.balance_due_days === null ? '' : String(tour.balance_due_days),
 
         meta_title: tour.meta_title ?? '',
         meta_description: tour.meta_description ?? '',
@@ -53,7 +42,6 @@ export function toInput(tour: Tour): TourInput {
         og_description: tour.og_description ?? '',
         canonical_url: tour.canonical_url ?? '',
 
-        status: tour.status,
         display_order: String(tour.display_order),
     };
 }
@@ -113,4 +101,11 @@ export function formatEndDate(value: string | null): string {
     ];
 
     return `${day} ${months[month - 1]} ${year}`;
+}
+
+/** A rupee amount the way the rest of the panel prints money. */
+export function formatRupees(amount: number | null): string {
+    if (amount === null) return '—';
+
+    return `₹${new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(amount)}`;
 }

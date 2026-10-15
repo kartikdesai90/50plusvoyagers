@@ -428,7 +428,7 @@ class TourContentTest extends TestCase
     /** The editor's order is what the public page reads back. */
     public function test_the_saved_order_is_the_order_read_back(): void
     {
-        $tour = $this->tour(['status' => Tour::STATUS_PUBLISHED]);
+        $tour = $this->tour();
 
         $this->actingAs($this->admin())
             ->postJson("/api/admin/tours/{$tour->id}/content", $this->payload([

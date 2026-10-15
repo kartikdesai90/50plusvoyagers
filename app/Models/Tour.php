@@ -7,47 +7,41 @@ use App\Support\FileStore;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * One group tour — the CRM's record of it, and the page it has.
  *
  * Two things live side by side here and it is worth being clear which is which.
- * The five CRM columns (`tour_code`, `tour_name`, `end_date` and the
- * timestamps) are the client's own table, carried across unchanged. Everything
- * else is the page: its address, its prose, its meta tags, its photographs.
+ * `tour_code` and `tour_name` identify the page and join it to the CRM.
+ * Everything else stored here is the page: its address, its prose, its meta
+ * tags, its photographs.
  *
- * What is deliberately absent is price, departure date, nights and booking
- * state. Those are read live from `tb_group_tour` through {@see CrmDepartures},
- * because a copy of a price is a price that can be wrong.
+ * Price, dates, nights, category, deposit and whether the tour is live
+ * (`tour_status`) are read live from `tb_group_tour` through
+ * {@see CrmDepartures}, because a copy of a price is a price that can be wrong.
  *
  * Testimonials are not a relation defined here either — they are `feedback`
  * rows carrying this tour's id, and that module already owns them.
  */
 class Tour extends Model
 {
-    public const STATUS_DRAFT = 'draft';
-
-    public const STATUS_PUBLISHED = 'published';
+    /** @var list<array<string, mixed>>|null */
+    private ?array $cachedDepartures = null;
 
     protected $fillable = [
-        // The CRM's five.
         'tour_code',
         'tour_name',
-        'end_date',
 
         // The page.
         'slug',
-        'legacy_url',
         'page_title',
         'subtitle',
-        'region',
         'summary',
         'ribbon_text',
         'route_map_path',
         'image_path',
         'visa_content',
-        'booking_fee',
-        'balance_due_days',
         'meta_title',
         'meta_description',
         'meta_keywords',
@@ -55,7 +49,6 @@ class Tour extends Model
         'og_description',
         'og_image_path',
         'canonical_url',
-        'status',
         'display_order',
     ];
 
@@ -63,9 +56,6 @@ class Tour extends Model
     protected function casts(): array
     {
         return [
-            'end_date' => 'date',
-            'booking_fee' => 'integer',
-            'balance_due_days' => 'integer',
             'display_order' => 'integer',
         ];
     }
@@ -166,15 +156,15 @@ class Tour extends Model
     /**
      * The tours the public site may show.
      *
-     * A page needs an address as well as a published status: a tour recorded
-     * from the CRM but never written has nothing to render.
+     * A page needs an address: a tour recorded from the CRM but never written
+     * has nothing to render. Whether the departure is live is
+     * `tb_group_tour.tour_status`, not a second flag on this table.
      *
      * @param  Builder<static>  $query
      */
     public function scopePublished(Builder $query): void
     {
-        $query->where('status', self::STATUS_PUBLISHED)
-            ->whereNotNull('slug')
+        $query->whereNotNull('slug')
             ->orderBy('display_order')
             ->orderBy('id');
     }
@@ -182,17 +172,33 @@ class Tour extends Model
     /**
      * The order a list of tours is read in, in the admin.
      *
-     * Soonest-ending first. A tour with no end date sorts last rather than
-     * first. MySQL puts nulls first on an ascending sort, which would float
-     * every undated row to the top of the screen, so the null check leads the
-     * sort and settles the question on any engine.
+     * Soonest-ending first, using the CRM's `tour_end_date`.
+     *
+     * A tour with no matching CRM row sorts last rather than first. Nulls
+     * lead an ascending sort on both MySQL and SQLite, which would float
+     * every unmatched row to the top of the screen, so the null check leads
+     * the sort.
+     *
+     * Matched on the whole `tour_code` rather than the destination stem: the
+     * list is ordered, not joined for display, and an exact code is portable
+     * across engines. The public page still matches on the stem through
+     * {@see CrmDepartures}.
      *
      * @param  Builder<static>  $query
      */
     public function scopeSoonest(Builder $query): void
     {
-        $query->orderByRaw('end_date IS NULL')
-            ->orderBy('end_date')
+        if (! Schema::hasTable('tb_group_tour')) {
+            $query->orderBy('id');
+
+            return;
+        }
+
+        $endDate = '(select min(tour_end_date) from tb_group_tour'
+            .' where trim(tb_group_tour.tour_code) = trim(tours.tour_code))';
+
+        $query->orderByRaw($endDate.' is null')
+            ->orderByRaw($endDate)
             ->orderBy('id');
     }
 
@@ -221,7 +227,50 @@ class Tour extends Model
      */
     public function departures(): array
     {
-        return app(CrmDepartures::class)->forKey($this->crmMatchKey());
+        return $this->cachedDepartures ??= app(CrmDepartures::class)->forKey($this->crmMatchKey());
+    }
+
+    /**
+     * The soonest live CRM departure, which is what a card and a price panel
+     * quote.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function nextDeparture(): ?array
+    {
+        return $this->departures()[0] ?? null;
+    }
+
+    /**
+     * India / International, as the public site already labels it.
+     *
+     * The CRM stores `Domestic` or `International` in `tour_category`. The
+     * listing filter and the fact strip say India, so the mapping lives here
+     * rather than in every resource.
+     */
+    public function publicRegion(): ?string
+    {
+        $category = mb_strtolower(trim((string) ($this->nextDeparture()['category'] ?? '')));
+
+        return match ($category) {
+            'domestic', 'india' => 'India',
+            'international' => 'International',
+            '' => null,
+            default => (string) $this->nextDeparture()['category'],
+        };
+    }
+
+    /**
+     * The booking deposit, from the CRM's `tour_advance`.
+     *
+     * Null when none is set, so the panel can hide the line rather than print
+     * a zero rupee fee.
+     */
+    public function publicBookingFee(): ?int
+    {
+        $advance = (int) ($this->nextDeparture()['advance'] ?? 0);
+
+        return $advance > 0 ? $advance : null;
     }
 
     /**

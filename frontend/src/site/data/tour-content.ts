@@ -21,10 +21,15 @@ export type TourDeparture = {
     ends_on: string | null;
     nights: number | null;
     price: number;
+    advance?: number;
     early_bird: number;
     single_supplement: number;
     booking_open: boolean;
+    status?: string;
     category: string;
+    short_name?: string;
+    website_name?: string;
+    website_link?: string;
 };
 
 export type TourItineraryDay = {

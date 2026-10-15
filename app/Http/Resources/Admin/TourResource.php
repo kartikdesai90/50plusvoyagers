@@ -2,20 +2,15 @@
 
 namespace App\Http\Resources\Admin;
 
-use App\Models\Tour;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * One tour as its editor sees it.
  *
- * The CRM's five fields, the page's own, and a count of what each of its
- * content lists holds — so the list screen can show at a glance which tours
- * have been written and which are still only CRM records.
- *
- * `end_date` goes out as a plain `Y-m-d` string rather than a timestamp: it is
- * a calendar date, and handing a date input an ISO datetime is how a tour ends
- * up a day early in one timezone.
+ * The page's own fields, plus a snapshot of the matching CRM departure so the
+ * panel can show dates, price and category without letting anyone edit a
+ * second copy of them.
  *
  * The disks and stored paths never leave the server — an editor works with a
  * picture they can see.
@@ -27,27 +22,23 @@ class TourResource extends JsonResource
     /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
+        $next = $this->nextDeparture();
+
         return [
             'id' => $this->id,
 
-            /* The CRM's five. */
             'tour_code' => $this->tour_code,
             'tour_name' => $this->tour_name,
-            'end_date' => $this->end_date?->format('Y-m-d'),
 
             /* The page. */
             'slug' => $this->slug,
-            'legacy_url' => $this->legacy_url,
             'page_title' => $this->page_title,
             'subtitle' => $this->subtitle,
-            'region' => $this->region,
             'summary' => $this->summary,
             'ribbon_text' => $this->ribbon_text,
             'image_url' => $this->imageUrl(),
             'route_map_url' => $this->routeMapUrl(),
             'visa_content' => $this->visa_content,
-            'booking_fee' => $this->booking_fee,
-            'balance_due_days' => $this->balance_due_days,
 
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
@@ -57,8 +48,26 @@ class TourResource extends JsonResource
             'og_image_url' => $this->ogImageUrl(),
             'canonical_url' => $this->canonical_url,
 
-            'status' => $this->status,
             'display_order' => $this->display_order,
+
+            /*
+             * Live from `tb_group_tour`. Null when this code has no upcoming
+             * departure — the form then says so rather than inventing blanks
+             * an editor might try to type into. `status` here is the CRM's
+             * `tour_status`, not a copy on `tours`.
+             */
+            'crm' => $next === null ? null : [
+                'tour_code' => $next['tour_code'] ?? null,
+                'starts_on' => $this->plainDate($next['starts_on'] ?? null),
+                'ends_on' => $this->plainDate($next['ends_on'] ?? null),
+                'nights' => $next['nights'] ?? null,
+                'price' => $next['price'] ?? null,
+                'advance' => ($next['advance'] ?? 0) > 0 ? $next['advance'] : null,
+                'category' => $this->publicRegion(),
+                'status' => ($next['status'] ?? '') !== '' ? $next['status'] : null,
+                'website_link' => ($next['website_link'] ?? '') !== '' ? $next['website_link'] : null,
+                'booking_open' => $next['booking_open'] ?? null,
+            ],
 
             /*
              * How much of the page exists. Loaded with `withCount` by the list
@@ -79,5 +88,14 @@ class TourResource extends JsonResource
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
+    }
+
+    private function plainDate(mixed $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return substr((string) $value, 0, 10);
     }
 }

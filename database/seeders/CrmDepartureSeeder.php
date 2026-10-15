@@ -3,32 +3,29 @@
 namespace Database\Seeders;
 
 use App\Support\CrmDepartures;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * A stand-in for the client's CRM schedule table, for development only.
+ * Sample rows for the client's CRM schedule table, for development only.
  *
- * `tb_group_tour` belongs to the client's CRM. It is not ours, it has no
- * migration here, and on the live site it is already populated by their
- * operations team. Locally it simply does not exist, and everything that reads
- * it degrades to an empty list by design — which is honest, but it leaves the
- * homepage with no departure dates, so the calendar falls back to the mockup
- * departures the design ships with and none of the cards lead anywhere.
+ * `tb_group_tour` belongs to the client's CRM. It is not ours to own the data
+ * in, but the table itself is now created by
+ * `2026_09_22_000100_create_tb_group_tour_table.php` with the client's real
+ * export schema, because some of the project's older files expect that full
+ * structure to exist locally. On the live site the table is already populated
+ * by the client's operations team; locally, after that migration runs, it
+ * exists but is empty, which leaves the homepage with no departure dates — the
+ * calendar falls back to the mockup departures the design ships with and none
+ * of the cards lead anywhere.
  *
- * So this seeder creates the table only when it is missing and fills it with
- * dates for the tours {@see TourSeeder} makes. Two rules keep it safe:
- *
- * - It never touches a `tb_group_tour` that already exists. On any machine
- *   pointed at the real CRM this seeder creates nothing and writes nothing.
- * - It is not a migration. Nothing in `database/migrations` builds this table,
- *   so a production deploy cannot create it by running migrations.
- *
- * The columns are only the ones {@see CrmDepartures} actually reads. This is a
- * fixture, not a reconstruction of the client's schema.
+ * So this seeder fills it with dates for the tours {@see TourSeeder} makes.
+ * One rule keeps it safe: it writes only rows whose `tour_code` it set itself
+ * (`updateOrInsert` keyed on `tour_code`), so re-running it cannot touch a row
+ * the client's own CRM wrote. It does not create or alter the table — that is
+ * the migration's job now, not this seeder's.
  */
 class CrmDepartureSeeder extends Seeder
 {
@@ -39,7 +36,9 @@ class CrmDepartureSeeder extends Seeder
 
     public function run(): void
     {
-        if (!$this->ensureTable()) {
+        if (!Schema::hasTable(self::TABLE)) {
+            // No table to seed into. On an environment that has not run
+            // migrations yet, this is nothing to fail over.
             return;
         }
 
@@ -49,52 +48,6 @@ class CrmDepartureSeeder extends Seeder
                 $departure,
             );
         }
-    }
-
-    /**
-     * Make the stand-in table, unless something already owns that name.
-     *
-     * Returns false when the table is already there — which on a machine
-     * connected to the real CRM is the whole point: a fixture must never write
-     * over live operational data.
-     */
-    private function ensureTable(): bool
-    {
-        if (Schema::hasTable(self::TABLE)) {
-            /*
-             * Already present. On a developer's machine that means this seeder
-             * has run before and may add its rows; against the real CRM it
-             * means the client's table is there and must be left alone. The two
-             * are told apart by the marker column, which only this fixture has.
-             */
-            return Schema::hasColumn(self::TABLE, 'is_local_fixture');
-        }
-
-        Schema::create(self::TABLE, function (Blueprint $table) {
-            $table->id();
-
-            $table->string('tour_code', 100)->index();
-            $table->string('tour_short_name', 150)->nullable();
-            $table->date('tour_start_date')->nullable();
-            $table->date('tour_end_date')->nullable();
-            $table->unsignedSmallInteger('tour_nights')->nullable();
-            $table->unsignedInteger('package_cost')->nullable();
-            $table->unsignedInteger('early_bird_discount')->nullable();
-            $table->unsignedInteger('single_supplement_cost')->nullable();
-            $table->string('tour_status', 40)->nullable();
-            $table->string('tour_booking_status', 40)->nullable();
-            $table->string('tour_category', 40)->nullable();
-
-            /*
-             * How this table is known to be the fixture rather than the
-             * client's own. Without it a second run could not tell a
-             * development stand-in from live CRM data, and the safe assumption
-             * — leave it alone — would stop the fixture updating its own rows.
-             */
-            $table->boolean('is_local_fixture')->default(true);
-        });
-
-        return true;
     }
 
     /**
@@ -116,28 +69,31 @@ class CrmDepartureSeeder extends Seeder
 
         return [
             $this->departure(
-                'SPAINPORT'.$today->copy()->addMonths(2)->format('dmY'),
+                'SpainPortugal'.$today->copy()->addMonths(2)->format('dmY'),
                 'Spain & Portugal',
                 $today->copy()->addMonths(2),
                 12,
                 554000,
                 'International',
+                50000,
             ),
             $this->departure(
-                'SPAINPORT'.$today->copy()->addMonths(5)->format('dmY'),
+                'SpainPortugal'.$today->copy()->addMonths(5)->format('dmY'),
                 'Spain & Portugal',
                 $today->copy()->addMonths(5),
                 12,
                 568000,
                 'International',
+                50000,
             ),
             $this->departure(
-                'KERALA'.$today->copy()->addMonths(3)->format('dmY'),
+                'kerala'.$today->copy()->addMonths(3)->format('dmY'),
                 'Kerala',
                 $today->copy()->addMonths(3),
                 6,
                 86500,
                 'Domestic',
+                15000,
             ),
             /*
              * Japan was seeded as a tour but never given a departure, so it
@@ -147,17 +103,29 @@ class CrmDepartureSeeder extends Seeder
              * into a section that cannot show it.
              */
             $this->departure(
-                'JAPAN'.$today->copy()->addMonths(7)->format('dmY'),
+                'Japan'.$today->copy()->addMonths(7)->format('dmY'),
                 'Japan in Autumn',
                 $today->copy()->addMonths(7),
                 12,
                 489000,
                 'International',
+                60000,
             ),
         ];
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * One row, filled out to the client's real schema.
+     *
+     * The table's `NOT NULL` columns need a value even where {@see
+     * CrmDepartures} never reads them — `rooms_details`, `operations`,
+     * `trf_link` and the like — so those get the same empty-but-present
+     * values the client's own export uses for a tour that has none (`''`,
+     * `0`). Nothing here is invented data; it is exactly what an unset column
+     * looks like in the client's dump.
+     *
+     * @return array<string, mixed>
+     */
     private function departure(
         string $code,
         string $name,
@@ -165,20 +133,47 @@ class CrmDepartureSeeder extends Seeder
         int $nights,
         int $cost,
         string $category,
+        int $advance = 15000,
     ): array {
+        $ends = $starts->copy()->addDays($nights);
+
         return [
             'tour_code' => $code,
+            'tour_name' => $name.' '.$starts->format('j M').' - '.$ends->format('j M Y'),
             'tour_short_name' => $name,
+            'tour_big_name' => $name,
+            'tour_website_name' => $name,
             'tour_start_date' => $starts->toDateString(),
-            'tour_end_date' => $starts->copy()->addDays($nights)->toDateString(),
+            'tour_end_date' => $ends->toDateString(),
+            'tour_days' => $nights + 1,
             'tour_nights' => $nights,
-            'package_cost' => $cost,
-            'early_bird_discount' => 15000,
-            'single_supplement_cost' => 65000,
             'tour_status' => self::LIVE_STATUS,
             'tour_booking_status' => 'Booking Open',
+            'tour_accounting_status' => 'Open',
+            'tour_release_date' => Carbon::today()->toDateString(),
             'tour_category' => $category,
-            'is_local_fixture' => true,
+            'package_cost' => $cost,
+            'senior_discount' => 0,
+            'early_bird_discount' => 15000,
+            'early_bird_discount_date' => $starts->copy()->subMonth()->toDateString(),
+            'early_bird_status' => 0,
+            'single_supplement_cost' => 65000,
+            'triple_occu_cost' => 0,
+            'tour_advance' => $advance,
+            'total_rooms_booked' => 0,
+            'rooms_details' => '',
+            'rooms_occupied' => '',
+            'room_available' => '',
+            'operations' => '',
+            'tour_manager_name' => '',
+            'tm_flight_train_status' => '',
+            'tour_feedback' => '',
+            'tour_website_link' => '',
+            'trf_link' => '',
+            'create_user_id' => null,
+            'create_date' => Carbon::now()->toDateTimeString(),
+            'modify_user_id' => null,
+            'modify_date' => null,
         ];
     }
 }

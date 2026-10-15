@@ -25,14 +25,12 @@ export const siteConfig = {
 
     /* Split either side of the wordmark on desktop; concatenated on mobile. */
     navLeft: [
-        { label: 'Group Tours', href: paths.groupTours },
-        { label: 'Gift Holidays', href: paths.giftHolidays },
-        { label: 'Workshops', href: paths.workshops },
+        { label: 'Upcoming Group Tours', href: paths.groupTours },
+        { label: 'Membership', href: paths.membership },
     ],
     navRight: [
-        { label: 'Membership', href: paths.membership },
-        { label: 'Journal', href: paths.blog },
-        { label: 'About', href: paths.about },
+        { label: 'Blogs', href: paths.blog },
+        { label: 'About Us', href: paths.about },
     ],
 
     footerNav: [
@@ -40,8 +38,6 @@ export const siteConfig = {
             title: 'Travel with us',
             links: [
                 { label: 'Group tours', href: paths.groupTours },
-                { label: 'Gift a holiday', href: paths.giftHolidays },
-                { label: 'Day-outs & workshops', href: paths.workshops },
                 { label: 'Upcoming departures', href: paths.homeSections.trips },
             ],
         },
@@ -52,7 +48,7 @@ export const siteConfig = {
                 { label: 'Membership', href: paths.membership },
                 { label: 'Traveller stories', href: paths.homeSections.stories },
                 { label: 'The gallery', href: paths.gallery },
-                { label: 'The journal', href: paths.blog },
+                { label: 'Blogs', href: paths.blog },
             ],
         },
         {

@@ -1,9 +1,10 @@
 'use client';
 
+import { useState } from 'react';
 import { ArrowRight, CalendarDays, Check, Clock, MapPin, Users, Wallet, X } from 'lucide-react';
 
 import { Container, Eyebrow, Section, SectionHeading } from '@/site/components/section';
-import { EnquiryForm } from '@/site/components/enquiry-form';
+import { EnquiryModal } from '@/site/components/enquiry-modal';
 import { TourCard } from '@/site/components/tour-card';
 import { TourBookBar } from '@/site/components/tour-book-bar';
 import { TourGallery } from '@/site/components/tour-gallery';
@@ -73,6 +74,7 @@ const reasons = (tour: TourView) => [
  */
 export default function GroupTourPage({ tour }: GroupTourPageProps) {
     const others = tours.filter((other) => other.slug !== tour.slug).slice(0, 3);
+    const [enquireOpen, setEnquireOpen] = useState(false);
 
     return (
         <>
@@ -121,13 +123,14 @@ export default function GroupTourPage({ tour }: GroupTourPageProps) {
                              * itinerary to find the button.
                              */}
                             <div className="mt-8 flex flex-wrap items-center gap-4">
-                                <a
-                                    href="#enquire"
+                                <button
+                                    type="button"
+                                    onClick={() => setEnquireOpen(true)}
                                     className="inline-flex items-center gap-2 rounded-full bg-brand px-7 py-3.5 text-[15px] font-bold tracking-[0.02em] text-white transition-opacity hover:opacity-90"
                                 >
                                     Enquire about this trip
                                     <ArrowRight className="size-[17px]" aria-hidden="true" />
-                                </a>
+                                </button>
                                 {tour.itinerary.length > 0 ? (
                                     <a
                                         href="#itinerary"
@@ -341,20 +344,18 @@ export default function GroupTourPage({ tour }: GroupTourPageProps) {
                                 </dl>
 
                                 {/*
-                                 * The ask, kept beside the price now that the
-                                 * form itself is at the foot of the page. A
-                                 * reader who has decided halfway through the
-                                 * itinerary should not have to scroll past
-                                 * everything they have already read to act on
-                                 * it.
+                                 * The ask, kept beside the price. It opens the
+                                 * enquiry modal rather than scrolling the
+                                 * reader to a form at the foot of the page.
                                  */}
-                                <a
-                                    href="#enquire"
+                                <button
+                                    type="button"
+                                    onClick={() => setEnquireOpen(true)}
                                     className="mt-7 flex w-full items-center justify-center gap-2 rounded-full bg-brand px-6 py-3.5 text-[15px] font-bold tracking-[0.02em] text-white transition-opacity hover:opacity-90"
                                 >
                                     Enquire about this trip
                                     <ArrowRight className="size-[17px]" aria-hidden="true" />
-                                </a>
+                                </button>
 
                                 <p className="mt-5 border-t border-hairline pt-5 text-[14px]/[1.6] text-ink-muted">
                                     {tour.balanceDueDays
@@ -650,41 +651,6 @@ export default function GroupTourPage({ tour }: GroupTourPageProps) {
                 </Section>
             ) : null}
 
-            {/*
-             * The enquiry, at the end and at full width.
-             *
-             * It used to sit in the sidebar under the price, which put a
-             * five-field form beside the first two days of a thirteen-day
-             * itinerary — asked before a reader knew what they were asking
-             * about, and cramped into 380px while doing it.
-             *
-             * Here it comes after the trip and after what other travellers
-             * said about it, which is the order somebody actually decides in.
-             * The sticky price panel keeps a link to it, so the ask is never
-             * more than one click away while reading.
-             */}
-            <Section id="enquire" tone="alt">
-                <Container>
-                    <div className="mx-auto max-w-[720px]">
-                        <div className="mb-[clamp(24px,3vw,36px)] text-center">
-                            <Eyebrow className="mb-[18px]">Next step</Eyebrow>
-                            <SectionHeading size="h3">Enquire about *this trip*</SectionHeading>
-                            <p className="mx-auto mt-4 max-w-[520px] text-[16px]/[1.6] text-ink-muted">
-                                Tell us a little about yourself and we will send the full itinerary,
-                                what the price covers, and the dates still open.
-                            </p>
-                        </div>
-
-                        <EnquiryForm
-                            id={`tour-${tour.slug}`}
-                            subject={tour.title}
-                            title=""
-                            submitLabel="Request details"
-                        />
-                    </div>
-                </Container>
-            </Section>
-
             <Section>
                 <Container>
                     <div className="mb-[clamp(28px,3vw,40px)]">
@@ -711,7 +677,19 @@ export default function GroupTourPage({ tour }: GroupTourPageProps) {
              * itinerary starts — so for the whole day-by-day and everything
              * after it there was nothing on screen to act on.
              */}
-            <TourBookBar price={tour.price} title={tour.title} />
+            <TourBookBar
+                price={tour.price}
+                title={tour.title}
+                hidden={enquireOpen}
+                onEnquire={() => setEnquireOpen(true)}
+            />
+
+            <EnquiryModal
+                open={enquireOpen}
+                onOpenChange={setEnquireOpen}
+                formId={`tour-${tour.slug}`}
+                subject={tour.title}
+            />
         </>
     );
 }

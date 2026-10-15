@@ -28,7 +28,6 @@ class TourController extends Controller
 {
     /** How an editor is allowed to order the list. Anything else is ignored. */
     private const SORTABLE = [
-        'ending' => 'end_date',
         'name' => 'tour_name',
         'code' => 'tour_code',
         'newest' => 'created_at',

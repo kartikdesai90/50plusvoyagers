@@ -92,7 +92,7 @@ export default function BlogPostPage({ post, related }: BlogPostPageProps) {
                     <Container>
                         <div className="mb-[clamp(28px,3vw,40px)]">
                             <Eyebrow className="mb-[18px]">Keep reading</Eyebrow>
-                            <SectionHeading size="h3">More from the *journal*</SectionHeading>
+                            <SectionHeading size="h3">More from the *blogs*</SectionHeading>
                         </div>
 
                         <div

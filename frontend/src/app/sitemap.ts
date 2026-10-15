@@ -40,9 +40,7 @@ import { siteUrl } from '@/site/seo/site-url';
 const PUBLIC_PAGES = [
     paths.about,
     paths.groupTours,
-    paths.giftHolidays,
     paths.membership,
-    paths.workshops,
     paths.blog,
     paths.gallery,
     paths.contact,

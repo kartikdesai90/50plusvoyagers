@@ -37,9 +37,9 @@ class ImportLegacyTourPage extends Command
         {--file= : Path to the saved HTML}
         {--code= : The CRM tour_code to attach it to}
         {--name= : The CRM tour_name, if the tour does not exist yet}
-        {--region= : India or International, when the CRM cannot be reached}
+        {--region= : Unused. Region is read from the CRM tour_category}
         {--overwrite-page : Also rewrite the tour is own page fields}
-        {--publish : Publish the tour once imported}';
+        {--publish : Unused. A tour is on the site once it has an address; live/hidden is tb_group_tour.tour_status}';
 
     protected $description = 'Import one legacy tour HTML page into the database';
 
@@ -95,10 +95,6 @@ class ImportLegacyTourPage extends Command
             $this->importInclusions($tour, $xpath);
             $this->importExclusions($tour, $xpath);
             $this->importSteps($tour, $xpath);
-
-            if ($this->option('publish')) {
-                $tour->status = Tour::STATUS_PUBLISHED;
-            }
 
             $tour->save();
         });
@@ -162,7 +158,6 @@ class ImportLegacyTourPage extends Command
     private function fillPage(Tour $tour, \DOMXPath $xpath, string $slug): void
     {
         $tour->fill([
-            'legacy_url' => "/grouptour/{$slug}.html",
             'page_title' => $this->text($xpath, '//div[@class="pg-opt"]//h1'),
             'subtitle' => $this->subtitle($xpath),
             'meta_title' => $this->attr($xpath, '//title', null),
@@ -172,7 +167,6 @@ class ImportLegacyTourPage extends Command
             'og_description' => $this->attr($xpath, '//meta[@property="og:description"]', 'content'),
             'summary' => $this->summary($xpath),
             'ribbon_text' => $this->text($xpath, '//div[contains(@class,"ribbon")]//span'),
-            'region' => $this->option('region') ?: $this->region($tour),
         ]);
     }
 

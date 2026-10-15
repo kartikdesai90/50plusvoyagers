@@ -53,7 +53,7 @@ export default function BlogPage({ posts, categories }: BlogPageProps) {
         return (
             <>
                 <PageHero
-                    eyebrow="The journal"
+                    eyebrow="Blogs"
                     title="Notes for the *road ahead*"
                     lead="Travelogues, wellbeing notes and practical advice — most of it written by the people who travel with us."
                 />
@@ -77,7 +77,7 @@ export default function BlogPage({ posts, categories }: BlogPageProps) {
     return (
         <>
             <PageHero
-                eyebrow="The journal"
+                eyebrow="Blogs"
                 title="Notes for the *road ahead*"
                 lead="Travelogues, wellbeing notes and practical advice — most of it written by the people who travel with us."
             />

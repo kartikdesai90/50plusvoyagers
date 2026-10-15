@@ -118,6 +118,12 @@ export function startMotion(): () => void {
         easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
         smoothWheel: true,
         touchMultiplier: 1.6,
+        /*
+         * Dialogs and other overflow panes mark themselves with this. Without
+         * it, Lenis eats the wheel and the pane cannot scroll — the enquiry
+         * modal was the first place that showed.
+         */
+        prevent: (node) => node.closest('[data-lenis-prevent]') !== null,
     });
 
     lenis.on('scroll', () => ScrollTrigger.update());
@@ -145,8 +151,23 @@ export function startMotion(): () => void {
 
     document.addEventListener('click', onAnchorClick);
 
+    /*
+     * Pause the page scroller while a dialog is open. `prevent` still lets the
+     * pane itself scroll; `stop` is what stops the page behind it from moving
+     * when the wheel is over the overlay.
+     */
+    const onOverlay = (event: Event) => {
+        const open = (event as CustomEvent<boolean>).detail;
+
+        if (open) lenis.stop();
+        else lenis.start();
+    };
+
+    window.addEventListener('voy:overlay', onOverlay);
+
     cleanups.push(() => {
         document.removeEventListener('click', onAnchorClick);
+        window.removeEventListener('voy:overlay', onOverlay);
         gsap.ticker.remove(raf);
         lenis.destroy();
     });

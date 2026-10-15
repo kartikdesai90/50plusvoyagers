@@ -9,6 +9,8 @@ use App\Models\TourBookingStep;
 use App\Models\TourItineraryDay;
 use App\Models\TourListItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
@@ -31,8 +33,6 @@ class TourPageTest extends TestCase
             'tour_name' => 'Spain Portugal 23 September - 5 October 2026',
             'slug' => 'spain-portugal',
             'page_title' => 'Spain and Portugal: A Tale of Two Kingdoms',
-            'region' => 'International',
-            'status' => Tour::STATUS_PUBLISHED,
             ...$attributes,
         ]);
     }
@@ -48,9 +48,9 @@ class TourPageTest extends TestCase
             ->assertJsonPath('data.title', 'Spain and Portugal: A Tale of Two Kingdoms');
     }
 
-    public function test_a_draft_cannot_be_read_by_anyone_who_knows_its_address(): void
+    public function test_a_page_without_an_address_cannot_be_read(): void
     {
-        $this->tour(['status' => Tour::STATUS_DRAFT]);
+        $this->tour(['slug' => null]);
 
         $this->getJson('/api/site/tours/spain-portugal')->assertNotFound();
     }
@@ -64,7 +64,6 @@ class TourPageTest extends TestCase
         Tour::create([
             'tour_code' => 'Jog07072026',
             'tour_name' => 'Jog Waterfall',
-            'status' => Tour::STATUS_PUBLISHED,
         ]);
 
         $this->getJson('/api/site/tours')
@@ -313,13 +312,66 @@ class TourPageTest extends TestCase
         $this->tour([
             'tour_code' => 'Coorg30052026',
             'tour_name' => 'Coorg',
-            'slug' => 'coorg',
-            'status' => Tour::STATUS_DRAFT,
+            'slug' => null,
         ]);
 
         $this->getJson('/api/site/tours')
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.slug', 'spain-portugal');
+    }
+
+    /** Price, dates, category and deposit come from tb_group_tour, not from tours. */
+    public function test_the_page_quotes_the_crm_rather_than_copied_columns(): void
+    {
+        $starts = Carbon::today()->addMonths(2)->toDateString();
+        $ends = Carbon::today()->addMonths(2)->addDays(12)->toDateString();
+
+        $this->tour();
+
+        DB::table('tb_group_tour')->insert([
+            'tour_code' => 'SpainPortugal'.$starts,
+            'tour_name' => 'Spain & Portugal',
+            'tour_short_name' => 'Spain & Portugal',
+            'tour_big_name' => 'Spain & Portugal',
+            'tour_website_name' => 'Spain & Portugal',
+            'tour_start_date' => $starts,
+            'tour_end_date' => $ends,
+            'tour_days' => 13,
+            'tour_nights' => 12,
+            'tour_status' => 'Active',
+            'tour_booking_status' => 'Booking Open',
+            'tour_category' => 'International',
+            'package_cost' => 554000,
+            'senior_discount' => 0,
+            'early_bird_discount' => 0,
+            'early_bird_status' => 0,
+            'single_supplement_cost' => 0,
+            'triple_occu_cost' => 0,
+            'tour_advance' => 50000,
+            'total_rooms_booked' => 0,
+            'rooms_details' => '',
+            'rooms_occupied' => '',
+            'room_available' => '',
+            'operations' => '',
+            'tour_manager_name' => '',
+            'tm_flight_train_status' => '',
+            'tour_feedback' => '',
+            'tour_website_link' => '/grouptour/spain-portugal.html',
+            'trf_link' => '',
+        ]);
+
+        $this->getJson('/api/site/tours/spain-portugal')
+            ->assertOk()
+            ->assertJsonPath('data.region', 'International')
+            ->assertJsonPath('data.booking_fee', 50000)
+            ->assertJsonPath('data.departures.0.price', 554000)
+            ->assertJsonPath('data.departures.0.starts_on', $starts)
+            ->assertJsonPath('data.departures.0.ends_on', $ends);
+
+        $this->getJson('/api/site/tours')
+            ->assertOk()
+            ->assertJsonPath('data.0.region', 'International')
+            ->assertJsonPath('data.0.price', 554000);
     }
 }

@@ -59,10 +59,15 @@ class CrmDepartures
                     'ends_on' => $row->tour_end_date,
                     'nights' => $this->nights($row),
                     'price' => (int) ($row->package_cost ?? 0),
+                    'advance' => (int) ($row->tour_advance ?? 0),
                     'early_bird' => (int) ($row->early_bird_discount ?? 0),
                     'single_supplement' => (int) ($row->single_supplement_cost ?? 0),
                     'booking_open' => trim((string) $row->tour_booking_status) === 'Booking Open',
+                    'status' => trim((string) ($row->tour_status ?? '')),
                     'category' => trim((string) ($row->tour_category ?? '')),
+                    'short_name' => trim((string) ($row->tour_short_name ?? '')),
+                    'website_name' => trim((string) ($row->tour_website_name ?? '')),
+                    'website_link' => trim((string) ($row->tour_website_link ?? '')),
                 ])
                 ->all();
         } catch (\Throwable $problem) {

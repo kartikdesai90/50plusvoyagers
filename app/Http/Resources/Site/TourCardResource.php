@@ -44,7 +44,7 @@ class TourCardResource extends JsonResource
             'slug' => $this->slug,
             'title' => $this->heading(),
             'subtitle' => $this->subtitle,
-            'region' => $this->region,
+            'region' => $this->publicRegion(),
             'ribbon_text' => $this->ribbon_text,
 
             'image_url' => $image ?? $cover?->imageUrl(),

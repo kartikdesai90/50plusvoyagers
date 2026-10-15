@@ -21,7 +21,7 @@ export function Journal({ items }: { items: JournalCard[] }) {
             <Container>
                 <div className="mb-[clamp(32px,4vw,48px)] flex flex-wrap items-end justify-between gap-5">
                     <div>
-                        <Eyebrow className="mb-[18px]">The journal</Eyebrow>
+                        <Eyebrow className="mb-[18px]">Blogs</Eyebrow>
                         <SectionHeading className="text-balance">
                             Notes for the *road ahead*
                         </SectionHeading>

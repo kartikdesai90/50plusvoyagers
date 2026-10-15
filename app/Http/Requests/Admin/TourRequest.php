@@ -5,7 +5,6 @@ namespace App\Http\Requests\Admin;
 use App\Models\Tour;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Validator;
 
 /**
  * What a tour is, described once for both creating and editing.
@@ -81,14 +80,14 @@ abstract class TourRequest extends FormRequest
 
             'tour_name' => ['required', 'string', 'max:200'],
 
-            // Nullable exactly as the CRM has it: a tour can be recorded before
-            // its end date is settled.
-            'end_date' => ['nullable', 'date'],
-
             /*
              * The page. All optional: a tour can be recorded from the CRM long
              * before anybody writes the page for it, and `published` is what
              * says the writing is done.
+             *
+             * Dates, price, category, deposit and the old-site URL are not
+             * here. They are read from `tb_group_tour` so this form cannot
+             * disagree with operations about them.
              */
             'slug' => [
                 'nullable',
@@ -97,15 +96,11 @@ abstract class TourRequest extends FormRequest
                 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
                 Rule::unique('tours', 'slug')->ignore($this->existing()?->getKey()),
             ],
-            'legacy_url' => ['nullable', 'string', 'max:2048'],
             'page_title' => ['nullable', 'string', 'max:255'],
             'subtitle' => ['nullable', 'string', 'max:255'],
-            'region' => ['nullable', 'string', 'max:20'],
             'summary' => ['nullable', 'string', 'max:5000'],
             'ribbon_text' => ['nullable', 'string', 'max:80'],
             'visa_content' => ['nullable', 'string', 'max:20000'],
-            'booking_fee' => ['nullable', 'integer', 'min:0'],
-            'balance_due_days' => ['nullable', 'integer', 'min:0', 'max:365'],
 
             /*
              * Carried across verbatim from the existing HTML — the client was
@@ -120,7 +115,6 @@ abstract class TourRequest extends FormRequest
             'og_description' => ['nullable', 'string', 'max:500'],
             'canonical_url' => ['nullable', 'string', 'max:2048'],
 
-            'status' => ['nullable', Rule::in([Tour::STATUS_DRAFT, Tour::STATUS_PUBLISHED])],
             'display_order' => ['nullable', 'integer', 'min:0'],
 
             'route_map_file' => ['nullable', 'file', 'mimetypes:'.self::IMAGE_TYPES, 'max:'.self::MAX_IMAGE],
@@ -147,25 +141,6 @@ abstract class TourRequest extends FormRequest
     }
 
     /**
-     * A tour cannot be published without an address.
-     *
-     * Stated here rather than left to the database, because "published with no
-     * slug" is a row the public scope silently skips — the editor would press
-     * Publish, see it save, and never find the page.
-     */
-    public function withValidator(Validator $validator): void
-    {
-        $validator->after(function (Validator $validator) {
-            $publishing = $this->input('status') === Tour::STATUS_PUBLISHED;
-            $slug = trim((string) $this->input('slug', $this->existing()?->slug));
-
-            if ($publishing && $slug === '') {
-                $validator->errors()->add('slug', 'A published tour needs an address.');
-            }
-        });
-    }
-
-    /**
      * The tour's fields, ready to fill a model with.
      *
      * Already trimmed by `prepareForValidation`, so what is stored is exactly
@@ -184,17 +159,16 @@ abstract class TourRequest extends FormRequest
          * being sent empty.
          */
         $page = array_intersect_key($validated, array_flip([
-            'slug', 'legacy_url', 'page_title', 'subtitle', 'region', 'summary',
-            'ribbon_text', 'visa_content', 'booking_fee', 'balance_due_days',
+            'slug', 'page_title', 'subtitle', 'summary',
+            'ribbon_text', 'visa_content',
             'meta_title', 'meta_description', 'meta_keywords',
             'og_title', 'og_description', 'canonical_url',
-            'status', 'display_order',
+            'display_order',
         ]));
 
         return [
             'tour_code' => $this->string('tour_code')->toString(),
             'tour_name' => $this->string('tour_name')->toString(),
-            'end_date' => $this->date('end_date'),
             ...$page,
         ];
     }

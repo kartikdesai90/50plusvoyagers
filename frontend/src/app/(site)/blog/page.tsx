@@ -8,7 +8,7 @@ import { siteConfig } from '@/site/config/site';
 
 export function generateMetadata(): Promise<Metadata> {
     return pageMetadata({
-        title: `The journal — travel stories from our members — ${siteConfig.name}`,
+        title: `Blogs — travel stories from our members — ${siteConfig.name}`,
         description:
             'Travelogues, wellbeing notes and practical advice, written by members of the 50+ Voyagers community and by our team.',
         path: '/blog',

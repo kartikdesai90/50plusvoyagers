@@ -160,10 +160,11 @@ class TourSeeder extends Seeder
     /**
      * The three tours.
      *
-     * Two published — one international, one domestic — so the homepage
-     * calendar has more than a single month to file them under, and one still a
-     * draft, so the admin list has both statuses to render and the public route
-     * has a tour it must refuse to serve.
+     * Two with addresses — one international, one domestic — so the homepage
+     * calendar has more than a single month to file them under, and one still
+     * without a slug, so the public route has a tour it must refuse to serve.
+     * Live vs hidden on the calendar is tb_group_tour.tour_status, not a flag
+     * on this table.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -171,18 +172,14 @@ class TourSeeder extends Seeder
     {
         return [
             [
-                'tour_code' => 'SPAINPORT23092026',
+                'tour_code' => 'SpainPortugal23092026',
                 'tour_name' => 'Spain & Portugal 23 Sep - 5 Oct 2026',
-                'end_date' => '2026-10-05',
                 'slug' => 'spain-and-portugal',
                 'page_title' => 'Spain & Portugal - Iberia at a Human Pace',
                 'subtitle' => 'Porto, Lisbon, Seville, Barcelona, Madrid',
-                'region' => 'International',
                 'summary' => 'Iberia at a pace that lets you sit in the square rather than march past it. Five cities, long lunches, and trains instead of coach marathons.',
                 'ribbon_text' => 'Only 4 seats left',
                 'visa_content' => '<p>A Schengen visa is required. We book the appointment, complete the forms and travel with you to the centre. The fee is not included.</p>',
-                'booking_fee' => 50000,
-                'balance_due_days' => 45,
                 'meta_title' => 'Spain & Portugal Group Tour for 50+ Travellers | 50 Plus Voyagers',
                 'meta_description' => 'Thirteen days across Porto, Lisbon, Seville, Barcelona and Madrid, hosted end to end for travellers over fifty. Small group, unhurried pace.',
                 'meta_keywords' => 'spain tour, portugal tour, senior group travel, 50 plus travel india',
@@ -190,9 +187,7 @@ class TourSeeder extends Seeder
                 'og_description' => 'Five cities, long lunches and trains instead of coach marathons.',
                 'og_image_path' => '/images/home/cappadocia.webp',
                 'canonical_url' => 'https://50plusvoyagers.com/group-tours/spain-and-portugal',
-                'legacy_url' => 'https://50plusvoyagers.com/spain-portugal-2026.html',
                 'route_map_path' => '/images/home/divider-kenya-equator.webp',
-                'status' => Tour::STATUS_PUBLISHED,
                 'content' => [
                     'images' => [
                         [
@@ -373,18 +368,14 @@ class TourSeeder extends Seeder
                 ],
             ],
             [
-                'tour_code' => 'KERALA14112026',
-                'tour_name' => 'Kerala 14 - 20 Nov 2026',
-                'end_date' => '2026-11-20',
+                'tour_code' => 'kerala26102026',
+                'tour_name' => 'Kerala 26 October - 2 November 2026',
                 'slug' => 'kerala-munnar-alleppey',
                 'page_title' => 'Kerala - Munnar Hills and the Alleppey Backwaters',
                 'subtitle' => 'Kochi, Munnar, Thekkady, Alleppey',
-                'region' => 'Domestic',
                 'summary' => 'Tea gardens in the morning cool, a houseboat with a cook aboard, and no day that starts before eight.',
                 'ribbon_text' => null,
                 'visa_content' => null,
-                'booking_fee' => 15000,
-                'balance_due_days' => 30,
                 'meta_title' => 'Kerala Group Tour for 50+ Travellers | 50 Plus Voyagers',
                 'meta_description' => 'Seven days through Kochi, Munnar, Thekkady and the Alleppey backwaters, hosted throughout for travellers over fifty.',
                 'meta_keywords' => 'kerala tour, munnar, alleppey houseboat, senior group travel',
@@ -392,9 +383,7 @@ class TourSeeder extends Seeder
                 'og_description' => 'Tea gardens, a houseboat, and no early starts.',
                 'og_image_path' => '/images/home/kerala-backwaters.webp',
                 'canonical_url' => null,
-                'legacy_url' => null,
                 'route_map_path' => null,
-                'status' => Tour::STATUS_PUBLISHED,
                 'content' => [
                     'images' => [
                         [
@@ -509,18 +498,14 @@ class TourSeeder extends Seeder
              * draft.
              */
             [
-                'tour_code' => 'JAPAN18112027',
-                'tour_name' => 'Japan 18 - 30 Nov 2027',
-                'end_date' => '2027-11-30',
-                'slug' => 'japan-in-autumn',
+                'tour_code' => 'Japan18112026',
+                'tour_name' => 'Japan 18 - 27 November 2026',
+                'slug' => null,
                 'page_title' => 'Japan in Autumn - Maples, Trains and Onsen',
                 'subtitle' => 'Tokyo, Hakone, Kyoto, Nara',
-                'region' => 'International',
                 'summary' => 'The maples at their reddest, bullet trains between cities, and an onsen evening with nothing scheduled after it.',
                 'ribbon_text' => null,
                 'visa_content' => '<p>A Japan tourist visa is required. We complete the paperwork and submit it on your behalf.</p>',
-                'booking_fee' => 60000,
-                'balance_due_days' => 60,
                 'meta_title' => null,
                 'meta_description' => null,
                 'meta_keywords' => null,
@@ -528,9 +513,7 @@ class TourSeeder extends Seeder
                 'og_description' => null,
                 'og_image_path' => null,
                 'canonical_url' => null,
-                'legacy_url' => null,
                 'route_map_path' => null,
-                'status' => Tour::STATUS_DRAFT,
                 'content' => [
                     'images' => [
                         [

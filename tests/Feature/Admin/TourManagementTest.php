@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Support\TourChoices;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -39,12 +41,11 @@ class TourManagementTest extends TestCase
             ->postJson('/api/admin/tours', [
                 'tour_code' => 'Coorg30052026',
                 'tour_name' => 'Coorg 30 May - 2 June 2026',
-                'end_date' => '2026-06-02',
             ])
             ->assertCreated()
             ->assertJsonPath('data.tour_code', 'Coorg30052026')
             ->assertJsonPath('data.tour_name', 'Coorg 30 May - 2 June 2026')
-            ->assertJsonPath('data.end_date', '2026-06-02');
+            ->assertJsonPath('data.crm', null);
 
         $this->assertDatabaseHas('tours', ['tour_code' => 'Coorg30052026']);
     }
@@ -102,11 +103,9 @@ class TourManagementTest extends TestCase
             ->postJson('/api/admin/tours/'.$tour->id, [
                 'tour_code' => 'Bali02092026',
                 'tour_name' => 'Bali 2 - 7 September 2026',
-                'end_date' => '2026-09-07',
             ])
             ->assertOk()
-            ->assertJsonPath('data.tour_name', 'Bali 2 - 7 September 2026')
-            ->assertJsonPath('data.end_date', '2026-09-07');
+            ->assertJsonPath('data.tour_name', 'Bali 2 - 7 September 2026');
     }
 
     public function test_a_code_and_a_name_are_required(): void
@@ -117,8 +116,8 @@ class TourManagementTest extends TestCase
             ->assertJsonValidationErrors(['tour_code', 'tour_name']);
     }
 
-    /** The CRM has it nullable, so a tour can be recorded before it is settled. */
-    public function test_a_tour_may_have_no_end_date(): void
+    /** Dates live on tb_group_tour, so a page can be recorded before a departure exists. */
+    public function test_a_tour_may_have_no_crm_departure(): void
     {
         $this->actingAs($this->admin())
             ->postJson('/api/admin/tours', [
@@ -126,7 +125,33 @@ class TourManagementTest extends TestCase
                 'tour_name' => 'Japan 18 - 27 November 2026',
             ])
             ->assertCreated()
-            ->assertJsonPath('data.end_date', null);
+            ->assertJsonPath('data.crm', null);
+    }
+
+    /** The panel reads price and dates from the CRM rather than storing a copy. */
+    public function test_the_editor_sees_the_matching_crm_departure(): void
+    {
+        $starts = Carbon::today()->addMonth()->toDateString();
+        $ends = Carbon::today()->addMonth()->addDays(7)->toDateString();
+
+        $this->crmDeparture('Coorg30052026', $starts, $ends, [
+            'package_cost' => 554000,
+            'tour_advance' => 15000,
+            'tour_category' => 'Domestic',
+        ]);
+
+        $this->actingAs($this->admin())
+            ->postJson('/api/admin/tours', [
+                'tour_code' => 'Coorg30052026',
+                'tour_name' => 'Coorg',
+            ])
+            ->assertCreated()
+            ->assertJsonPath('data.crm.starts_on', $starts)
+            ->assertJsonPath('data.crm.ends_on', $ends)
+            ->assertJsonPath('data.crm.price', 554000)
+            ->assertJsonPath('data.crm.advance', 15000)
+            ->assertJsonPath('data.crm.category', 'India')
+            ->assertJsonPath('data.crm.status', 'Active');
     }
 
     public function test_the_lengths_match_the_crm_columns(): void
@@ -147,8 +172,11 @@ class TourManagementTest extends TestCase
     public function test_an_undated_tour_sorts_last_rather_than_first(): void
     {
         Tour::create(['tour_code' => 'C', 'tour_name' => 'No date yet']);
-        Tour::create(['tour_code' => 'A', 'tour_name' => 'Ends soonest', 'end_date' => '2026-06-02']);
-        Tour::create(['tour_code' => 'B', 'tour_name' => 'Ends later', 'end_date' => '2026-12-20']);
+        Tour::create(['tour_code' => 'A', 'tour_name' => 'Ends soonest']);
+        Tour::create(['tour_code' => 'B', 'tour_name' => 'Ends later']);
+
+        $this->crmDeparture('A', '2026-05-01', '2026-06-02');
+        $this->crmDeparture('B', '2026-12-01', '2026-12-20');
 
         $names = collect(
             $this->actingAs($this->admin())->getJson('/api/admin/tours')->json('data')
@@ -302,5 +330,44 @@ class TourManagementTest extends TestCase
             ['Andaman', 'Bhutan'],
             array_column(app(TourChoices::class)->all(), 'name'),
         );
+    }
+
+    /**
+     * @param  array<string, mixed>  $extra
+     */
+    private function crmDeparture(string $code, string $starts, string $ends, array $extra = []): void
+    {
+        DB::table('tb_group_tour')->insert([
+            'tour_code' => $code,
+            'tour_name' => $code,
+            'tour_short_name' => $code,
+            'tour_big_name' => $code,
+            'tour_website_name' => $code,
+            'tour_start_date' => $starts,
+            'tour_end_date' => $ends,
+            'tour_days' => 8,
+            'tour_nights' => 7,
+            'tour_status' => 'Active',
+            'tour_booking_status' => 'Booking Open',
+            'tour_category' => 'International',
+            'package_cost' => 100000,
+            'senior_discount' => 0,
+            'early_bird_discount' => 0,
+            'early_bird_status' => 0,
+            'single_supplement_cost' => 0,
+            'triple_occu_cost' => 0,
+            'tour_advance' => 0,
+            'total_rooms_booked' => 0,
+            'rooms_details' => '',
+            'rooms_occupied' => '',
+            'room_available' => '',
+            'operations' => '',
+            'tour_manager_name' => '',
+            'tm_flight_train_status' => '',
+            'tour_feedback' => '',
+            'tour_website_link' => '',
+            'trf_link' => '',
+            ...$extra,
+        ]);
     }
 }

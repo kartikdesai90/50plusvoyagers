@@ -208,7 +208,7 @@ export default function AdminToursIndexPage() {
                                                 <PageState tour={tour} />
                                             </Td>
                                             <Td className="text-muted-foreground tabular-nums">
-                                                {formatEndDate(tour.end_date)}
+                                                {formatEndDate(tour.crm?.ends_on ?? null)}
                                             </Td>
                                             <Td>
                                                 <div className="flex items-center justify-end gap-1">
@@ -320,7 +320,7 @@ function EmptyState({ isFiltered, onClear }: { isFiltered: boolean; onClear: () 
  */
 function PageState({ tour }: { tour: Tour }) {
     const { written, summary } = pageProgress(tour);
-    const live = tour.status === 'published' && Boolean(tour.slug);
+    const live = Boolean(tour.slug) && tour.crm?.status === 'Active';
 
     return (
         <div className="flex flex-col gap-1">
